@@ -1,0 +1,2966 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Mantis World · The True Lord</title>
+<style>
+body { margin:0; overflow:hidden; font-family:monospace; background:#87ceeb; color:#fff; }
+canvas { display:block; position:fixed; top:0; left:0; z-index:1; }
+#ui { position:fixed; top:16px; left:16px; background:rgba(0,0,0,0.75); padding:10px 18px; border-radius:40px; border:2px solid #8bc34a; font-weight:bold; font-size:0.85rem; z-index:10; pointer-events:none; display:none; }
+#hp { display:inline-block; width:100px; height:12px; background:#333; border-radius:10px; overflow:hidden; border:1px solid #a5d6a7; vertical-align:middle; margin:0 8px; }
+#hpfill { width:100%; height:100%; background:linear-gradient(90deg,#f44,#fa4); transition:width 0.15s; }
+#topright { position:fixed; top:16px; right:16px; display:flex; gap:6px; z-index:10; flex-wrap:wrap; justify-content:flex-end; max-width:60%; }
+.tag { background:rgba(0,0,0,0.8); color:#ffe082; padding:6px 12px; border-radius:30px; border:2px solid #ffb300; font-weight:bold; font-size:0.8rem; }
+#restart { position:fixed; top:16px; left:50%; transform:translateX(-50%); background:#b22222; color:#fff; padding:8px 20px; border-radius:30px; border:2px solid #ff6666; font-weight:bold; cursor:pointer; font-size:0.85rem; z-index:100; display:none; font-family:inherit; }
+#restart:hover { background:#d32f2f; }
+#center { position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:rgba(0,0,0,0.9); padding:30px 50px; border-radius:30px; border:3px solid #8bc34a; text-align:center; z-index:100; }
+#center h1 { color:#c5e1a5; margin:0 0 15px; font-size:1.8rem; }
+#center p { color:#aed581; margin:0 0 20px; }
+#nameInputs { display:flex; gap:10px; justify-content:center; align-items:center; }
+.nameSelect { padding:12px 14px; font-size:1rem; border-radius:30px; border:2px solid #8bc34a; background:#1a2a1a; color:#fff; font-family:inherit; cursor:pointer; }
+button { margin-top:14px; padding:12px 40px; font-size:1.1rem; font-weight:bold; background:#d9b382; border:2px solid #f3e3c2; border-radius:40px; color:#1e2a0e; cursor:pointer; font-family:inherit; }
+button:hover { background:#e8c492; }
+button:disabled { opacity:0.4; cursor:default; }
+#load { position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:rgba(0,0,0,0.8); color:#fff; padding:20px 40px; border-radius:20px; z-index:200; font-size:1.3rem; }
+#err { position:fixed; top:10px; left:50%; transform:translateX(-50%); background:#600; color:#fff; padding:8px 20px; border-radius:8px; font-size:0.85rem; z-index:9999; display:none; max-width:80%; text-align:center; border:2px solid #f00; }
+#msg { position:fixed; bottom:130px; left:50%; transform:translateX(-50%); background:rgba(0,0,0,0.9); color:#ffe082; padding:12px 30px; border-radius:40px; border:3px solid #ffb300; font-weight:bold; display:none; z-index:100; font-size:1rem; }
+#prompt { position:fixed; bottom:80px; left:50%; transform:translateX(-50%); background:rgba(0,0,0,0.85); color:#ffe082; padding:8px 20px; border-radius:40px; border:2px solid #ffb300; font-weight:bold; display:none; z-index:50; font-size:0.85rem; }
+#controls-bar { position:fixed; bottom:0; left:0; width:100%; background:rgba(0,0,0,0.85); color:#ffe082; padding:10px 20px; z-index:20; display:none; font-size:0.8rem; border-top:2px solid #8bc34a; }
+.k { background:#333; padding:3px 10px; border-radius:8px; border:1px solid #888; color:#fff; font-weight:bold; margin-right:4px; }
+#inv-panel { position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:rgba(10,20,10,0.97); color:#e0ffc0; padding:26px 34px; border-radius:28px; border:3px solid #ffb300; z-index:150; display:none; min-width:520px; max-height:75vh; overflow-y:auto; }
+#inv-panel h2 { color:#ffd54f; margin:0 0 14px; text-align:center; }
+#inv-panel h3 { color:#8bc34a; margin:14px 0 6px; font-size:0.95rem; border-bottom:1px solid #333; padding-bottom:4px; }
+.inv-item { background:rgba(255,255,255,0.08); padding:10px 16px; margin:6px 0; border-radius:12px; border-left:4px solid #8bc34a; display:flex; justify-content:space-between; align-items:center; font-size:0.9rem; gap:10px; }
+.inv-item.armor { border-left-color: #4aa3d4; }
+.inv-item.weapon { border-left-color: #d44a4a; }
+.inv-item.food { border-left-color: #8bc34a; }
+.inv-item.special { border-left-color: #ffd700; background: rgba(255,215,0,0.1); }
+.inv-item button { padding:5px 14px; background:#8bc34a; border:none; border-radius:20px; color:#1a2a0a; font-weight:bold; cursor:pointer; font-family:inherit; font-size:0.8rem; margin:0; }
+.inv-item button.equip { background:#4aa3d4; color:#fff; }
+.inv-item button.equipped { background:#ffd700; color:#1a2a0a; }
+.inv-empty { color:#888; text-align:center; padding:20px; font-style:italic; }
+#close-inv { display:block; margin:14px auto 0; padding:9px 30px; background:#d9b382; border:none; border-radius:40px; color:#1e2a0e; font-weight:bold; cursor:pointer; font-family:inherit; }
+#stats-panel { background: rgba(0,0,0,0.4); padding: 12px; border-radius: 12px; margin-bottom: 14px; font-size: 0.85rem; display:grid; grid-template-columns: 1fr 1fr; gap: 6px 16px; }
+#stats-panel span { color: #aed581; }
+#stats-panel b { color: #ffd54f; }
+#boss-hp { position:fixed; top:70px; left:50%; transform:translateX(-50%); width:500px; background:rgba(0,0,0,0.85); border-radius:20px; border:3px solid #b71c1c; display:none; z-index:15; padding:6px 16px; text-align:center; color:#ffcdd2; font-weight:bold; font-size:0.85rem; }
+#bosshpfill { width:100%; height:18px; background:#2a1a1a; border-radius:10px; overflow:hidden; border:2px solid #ef9a9a; margin-top:4px; }
+#bosshpinner { height:100%; background:linear-gradient(90deg,#b71c1c,#ff6f00); transition:width 0.15s; }
+#riding { position:fixed; bottom:180px; left:50%; transform:translateX(-50%); background:rgba(139,90,43,0.95); color:#fff; padding:8px 20px; border-radius:40px; border:3px solid #ffb300; font-weight:bold; display:none; z-index:60; }
+#fish-ui { position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:rgba(10,30,50,0.97); color:#c8e8ff; padding:30px; border-radius:30px; border:3px solid #4aa3d4; z-index:160; display:none; text-align:center; min-width:400px; }
+#fish-ui h2 { margin:0 0 14px; color:#7fd4ff; }
+#fish-line { height:20px; background:#1a3a5a; border-radius:10px; margin:14px 0; overflow:hidden; border:2px solid #4aa3d4; position:relative; }
+#fish-marker { width:8px; height:100%; background:#ffd700; position:absolute; top:0; left:0; }
+#fish-zone { position:absolute; top:0; height:100%; background:rgba(80,220,120,0.4); }
+#fish-status { margin:14px 0; font-size:1rem; }
+#fish-close { margin-top:12px; padding:9px 30px; background:#d9b382; border:none; border-radius:40px; color:#1e2a0e; font-weight:bold; cursor:pointer; font-family:inherit; }
+#cutscene { position:fixed; top:0; left:0; width:100%; height:100%; background:#000; z-index:300; display:none; flex-direction:column; justify-content:center; align-items:center; padding:40px; box-sizing:border-box; overflow:hidden; }
+#cutscene-bg { position:absolute; top:0; left:0; width:100%; height:100%; z-index:0; opacity:0.5; background-size:cover; background-position:center; transition:opacity 1s; }
+#cutscene-content { position:relative; z-index:1; display:flex; flex-direction:column; align-items:center; justify-content:center; width:100%; height:100%; }
+#cutscene-text { color:#ffe082; font-size:1.5rem; max-width:900px; line-height:1.6; text-align:center; font-family:Georgia,serif; text-shadow:0 0 20px #ff6600; min-height:120px; opacity:0; transition:opacity 0.4s; }
+#cutscene-text.visible { opacity:1; }
+#cutscene-speaker { color:#ff6644; font-size:1.2rem; margin-bottom:20px; font-weight:bold; letter-spacing:3px; font-family:monospace; opacity:0; transition:opacity 0.4s; }
+#cutscene-speaker.visible { opacity:1; }
+#cutscene-next { margin-top:40px; padding:14px 50px; font-size:1.1rem; background:#d9b382; color:#1e2a0e; border:none; border-radius:40px; font-weight:bold; cursor:pointer; font-family:inherit; opacity:0; transition:opacity 0.4s; }
+#cutscene-next.visible { opacity:1; }
+#cutscene-char { font-size:6rem; margin-bottom:20px; animation:floatChar 2s ease-in-out infinite; }
+@keyframes floatChar {
+0%, 100% { transform: translateY(0) scale(1); }
+50% { transform: translateY(-20px) scale(1.05); }
+}
+#cutscene.flash { animation: flashIn 0.5s; }
+@keyframes flashIn {
+0% { background:#fff; }
+100% { background:#000; }
+}
+#cutscene.shake #cutscene-content { animation: shake 0.4s; }
+@keyframes shake {
+0%, 100% { transform: translateX(0); }
+25% { transform: translateX(-8px); }
+75% { transform: translateX(8px); }
+}
+#build-hint, #delete-hint, #boat-hint {
+position: fixed; top: 120px; left: 50%; transform: translateX(-50%);
+padding: 10px 24px; border-radius: 40px;
+font-weight: bold; font-size: 0.95rem; z-index: 60;
+display: none; box-shadow: 0 0 30px rgba(139,195,74,0.5);
+}
+#build-hint { background: rgba(0,0,0,0.85); color: #aaffaa; border: 3px solid #8bc34a; }
+#delete-hint { background: rgba(0,0,0,0.85); color: #ff8888; border: 3px solid #b71c1c; box-shadow: 0 0 30px rgba(183,28,28,0.5); }
+#boat-hint { background: rgba(0,0,0,0.85); color: #88ddff; border: 3px solid #4aa3d4; box-shadow: 0 0 30px rgba(74,163,212,0.5); }
+#equip-hud { position:fixed; bottom:60px; right:16px; background:rgba(0,0,0,0.8); color:#c8e8ff; padding:10px 16px; border-radius:20px; border:2px solid #4aa3d4; font-size:0.8rem; z-index:10; display:none; max-width:220px; }
+#equip-hud h4 { margin:0 0 6px; color:#7fd4ff; font-size:0.85rem; }
+#equip-hud .row { margin:3px 0; }
+#minimap {
+position: fixed;
+bottom: 56px;
+right: 16px;
+width: 180px;
+height: 180px;
+background: rgba(0,0,0,0.75);
+border: 3px solid #8bc34a;
+border-radius: 50%;
+z-index: 15;
+box-shadow: 0 0 25px rgba(139,195,74,0.5);
+pointer-events: none;
+display: none;
+}
+#minimap-label {
+position: fixed;
+bottom: 240px;
+right: 16px;
+color: #aaffaa;
+font-size: 0.7rem;
+text-align: center;
+width: 180px;
+z-index: 15;
+text-shadow: 0 0 8px black;
+letter-spacing: 2px;
+display: none;
+}
+</style>
+</head>
+<body>
+
+<div id="load">Loading...</div>
+<div id="err"></div>
+<button id="restart">🔄 Restart Game</button>
+
+<div id="ui">
+🦗 <span id="pn">YOU</span>
+<div id="hp"><div id="hpfill"></div></div>
+KILLS: <span id="kills">0</span>
+</div>
+
+<div id="topright" style="display:none;">
+<div class="tag" id="gold">💰 100</div>
+<div class="tag" id="theme">🏘️ VILLAGE</div>
+<div class="tag" id="inv">🎒 0</div>
+<div class="tag" id="boss">⚔️ 0</div>
+</div>
+
+<div id="equip-hud">
+<h4>⚔️ EQUIPPED</h4>
+<div class="row" id="eq-weapon">Weapon: none</div>
+<div class="row" id="eq-armor">Armor: none</div>
+<div class="row" id="eq-helmet">Helmet: none</div>
+</div>
+
+<div id="minimap-label">🗺️ MINIMAP</div>
+<canvas id="minimap" width="180" height="180"></canvas>
+
+<div id="boss-hp">
+<div id="boss-name">⚔️ BOSS ⚔️</div>
+<div id="bosshpfill"><div id="bosshpinner" style="width:100%;"></div></div>
+</div>
+
+<div id="center">
+<h1>🦗 MANTIS WORLD 🦗</h1>
+<p>Choose a name to begin</p>
+<div id="nameInputs">
+<select id="nameFirst" class="nameSelect">
+<option value="Iron">Iron</option>
+<option value="Death">Death</option>
+<option value="Poison">Poison</option>
+<option value="Thorn">Thorn</option>
+<option value="Shadow">Shadow</option>
+<option value="Gold">Gold</option>
+<option value="Blood">Blood</option>
+<option value="Storm">Storm</option>
+<option value="Fire">Fire</option>
+<option value="Frost">Frost</option>
+</select>
+<select id="nameSecond" class="nameSelect">
+<option value="Mantid">Mantid</option>
+<option value="Mantis">Mantis</option>
+<option value="Claw">Claw</option>
+<option value="Mandible">Mandible</option>
+<option value="Sting">Sting</option>
+<option value="Blade">Blade</option>
+<option value="Fang">Fang</option>
+<option value="Scythe">Scythe</option>
+<option value="Hunter">Hunter</option>
+<option value="Reaper">Reaper</option>
+</select>
+</div>
+<p id="namePreview" style="color:#ffe082; font-size:1.3rem; margin-top:15px;">Your name: <span id="namePreviewText">Iron Mantid</span></p>
+<div style="color:#aed581; font-size:0.85rem; margin-top:8px;">(Your color is determined by your name)</div>
+<button id="startBtn">ENTER THE WORLD</button>
+</div>
+
+<div id="msg"></div>
+<div id="prompt"></div>
+<div id="riding">🐛 Riding Beetle Cart — WASD to drive, A/D to turn, E to dismount</div>
+<div id="build-hint">🔨 BUILD MODE — Click to place hut · Press H to cancel</div>
+<div id="delete-hint">🗑️ DELETE MODE — Look at your hut + press H to remove it · Press X to cancel</div>
+<div id="boat-hint">⛵ Press E to sail to the Camel Spider Island</div>
+
+<div id="inv-panel">
+<h2>🎒 Inventory</h2>
+<div id="stats-panel"></div>
+<div id="inv-list"></div>
+<button id="close-inv">Close</button>
+</div>
+
+<div id="fish-ui">
+<h2>🎣 Fishing</h2>
+<div id="fish-status">Press SPACE when the marker is in the green zone!</div>
+<div id="fish-line">
+<div id="fish-marker"></div>
+<div id="fish-zone"></div>
+</div>
+<button id="fish-close">Close</button>
+</div>
+
+<div id="cutscene">
+<div id="cutscene-bg"></div>
+<div id="cutscene-content">
+<div id="cutscene-char">🦗</div>
+<div id="cutscene-speaker">???</div>
+<div id="cutscene-text"></div>
+<button id="cutscene-next">Continue ▶</button>
+</div>
+</div>
+
+<div id="controls-bar">
+<span><span class="k">WASD</span>move</span>
+<span><span class="k">SPACE</span>attack / cast</span>
+<span><span class="k">E</span>interact / ride</span>
+<span><span class="k">F</span>use nearby</span>
+<span><span class="k">H</span>build / delete hut</span>
+<span><span class="k">X</span>cancel build</span>
+<span><span class="k">I</span>inventory</span>
+<span><span class="k">M</span>mouse</span>
+</div>
+
+<script type="importmap">
+{
+"imports": {
+"three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+"three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+}
+}
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+import { PointerLockControls } from 'three/addons/controls/PointerLockControls.js';
+
+const loadEl = document.getElementById('load');
+const errEl = document.getElementById('err');
+const msgEl = document.getElementById('msg');
+const promptEl = document.getElementById('prompt');
+const ridingEl = document.getElementById('riding');
+const bossHpEl = document.getElementById('boss-hp');
+const bossHpInner = document.getElementById('bosshpinner');
+const bossNameEl = document.getElementById('boss-name');
+const controlsBar = document.getElementById('controls-bar');
+const invPanel = document.getElementById('inv-panel');
+const invList = document.getElementById('inv-list');
+const closeInvBtn = document.getElementById('close-inv');
+const restartBtn = document.getElementById('restart');
+const fishUI = document.getElementById('fish-ui');
+const fishMarker = document.getElementById('fish-marker');
+const fishZone = document.getElementById('fish-zone');
+const fishStatus = document.getElementById('fish-status');
+const fishCloseBtn = document.getElementById('fish-close');
+const nameFirstSel = document.getElementById('nameFirst');
+const nameSecondSel = document.getElementById('nameSecond');
+const namePreviewText = document.getElementById('namePreviewText');
+const cutsceneEl = document.getElementById('cutscene');
+const cutsceneText = document.getElementById('cutscene-text');
+const cutsceneSpeaker = document.getElementById('cutscene-speaker');
+const cutsceneNext = document.getElementById('cutscene-next');
+const cutsceneChar = document.getElementById('cutscene-char');
+const cutsceneBg = document.getElementById('cutscene-bg');
+const buildHint = document.getElementById('build-hint');
+const deleteHint = document.getElementById('delete-hint');
+const boatHint = document.getElementById('boat-hint');
+const statsPanel = document.getElementById('stats-panel');
+const equipHud = document.getElementById('equip-hud');
+const eqWeapon = document.getElementById('eq-weapon');
+const eqArmor = document.getElementById('eq-armor');
+const eqHelmet = document.getElementById('eq-helmet');
+const minimap = document.getElementById('minimap');
+const minimapCtx = minimap.getContext('2d');
+const minimapLabel = document.getElementById('minimap-label');
+
+function err(msg) { errEl.style.display='block'; errEl.textContent='❌ '+msg; console.error(msg); }
+function showMsg(text, dur) {
+msgEl.textContent = text;
+msgEl.style.display = 'block';
+clearTimeout(msgEl._t);
+msgEl._t = setTimeout(() => msgEl.style.display = 'none', dur || 2000);
+}
+window.addEventListener('error', e => err(e.message));
+
+// ============ ITEM DATABASE ============
+const ITEMS = {
+'Food Berry': { type:'food', desc:'+30 HP', heal:30, value:5 },
+'Forest Herb': { type:'food', desc:'+40 HP', heal:40, value:8 },
+'Honey Drop': { type:'food', desc:'+60 HP', heal:60, value:15 },
+'Fish': { type:'food', desc:'+50 HP', heal:50, value:12 },
+'Mushroom Stew': { type:'food', desc:'+100 HP', heal:100, value:30 },
+'Camel Spider Egg': { type:'food', desc:'+80 HP', heal:80, value:40 },
+'Sharp Claw': { type:'weapon', dmgBonus:10, desc:'+10 DMG', value:30 },
+'Bone Blade': { type:'weapon', dmgBonus:20, desc:'+20 DMG', value:60 },
+'Thorn Scythe': { type:'weapon', dmgBonus:35, desc:'+35 DMG', value:100 },
+'Crystal Spear': { type:'weapon', dmgBonus:50, desc:'+50 DMG', value:160 },
+'Venom Fang': { type:'weapon', dmgBonus:75, desc:'+75 DMG', value:240 },
+'Mantideus Blade': { type:'weapon', dmgBonus:120, desc:'+120 DMG', value:500 },
+'Camel Spider Fang': { type:'weapon', dmgBonus:90, desc:'+90 DMG', value:300 },
+'King Fang': { type:'weapon', dmgBonus:150, desc:'+150 DMG', value:800 },
+'Leaf Vest': { type:'armor', hpBonus:30, desc:'+30 Max HP', value:25 },
+'Bark Cuirass': { type:'armor', hpBonus:60, desc:'+60 Max HP', value:55 },
+'Chitin Plate': { type:'armor', hpBonus:100, desc:'+100 Max HP', value:100 },
+'Crystal Carapace': { type:'armor', hpBonus:160, desc:'+160 Max HP', value:180 },
+'Dragon Scale': { type:'armor', hpBonus:250, desc:'+250 Max HP', value:350 },
+'Void Shell': { type:'armor', hpBonus:400, desc:'+400 Max HP', value:700 },
+'Sand Plate': { type:'armor', hpBonus:300, desc:'+300 Max HP', value:450 },
+'Bug Cap': { type:'helmet', hpBonus:15, desc:'+15 Max HP', value:20 },
+'Horned Helm': { type:'helmet', hpBonus:40, desc:'+40 Max HP', value:50 },
+'Crown of Beetleon': { type:'helmet', hpBonus:80, desc:'+80 Max HP', value:120 },
+'Mantideus Crown': { type:'helmet', hpBonus:150, desc:'+150 Max HP', value:400 },
+'King Crown': { type:'helmet', hpBonus:200, desc:'+200 Max HP', value:600 },
+"King's Scepter": { type:'special', desc:'Proof of the true king', value:1000 },
+'Capital Crown': { type:'special', desc:'Royal heirloom', value:300 },
+'Royal Gem': { type:'special', desc:'Shiny gem', value:150 },
+'Ancient Rune': { type:'special', desc:'Old magic', value:100 },
+'House Crafter Tool': { type:'special', desc:'Build and delete huts', value:75 },
+'Beetle Cart': { type:'special', desc:'Mount in the world', value:50 },
+'Spider Silk': { type:'special', desc:'Rare spider drop', value:200 },
+'Camel Spider King Trophy': { type:'special', desc:'Slayer of the King', value:2000 }
+};
+
+function getItem(name) {
+return ITEMS[name] || { type:'special', desc:'Unknown item', value:10 };
+}
+
+// ============ NAME ============
+function updateNamePreview() {
+namePreviewText.textContent = nameFirstSel.value + ' ' + nameSecondSel.value;
+}
+nameFirstSel.onchange = updateNamePreview;
+nameSecondSel.onchange = updateNamePreview;
+updateNamePreview();
+
+function colorForName(first) {
+const map = {
+'Iron': '#6a6a6a', 'Death': '#2a0a0a', 'Poison': '#4a8a2a', 'Thorn': '#6a3a1a',
+'Shadow': '#2a2a3a', 'Gold': '#d4a017', 'Blood': '#8a0a0a', 'Storm': '#3a5a8a',
+'Fire': '#c44a1a', 'Frost': '#8ab8d4'
+};
+return map[first] || '#2e8b57';
+}
+
+// ============ AUDIO ============
+let audioCtx = null, masterGain = null, themeLoopId = null, currentAudioTheme = null;
+function initAudio() {
+if (audioCtx) return;
+try {
+audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+masterGain = audioCtx.createGain();
+masterGain.gain.value = 0.12;
+masterGain.connect(audioCtx.destination);
+} catch(e) {}
+}
+function playTone(freq, dur, type, vol, when) {
+if (!audioCtx) return;
+type = type || 'sine'; vol = vol || 0.1; when = when || 0;
+try {
+const osc = audioCtx.createOscillator();
+const g = audioCtx.createGain();
+osc.type = type;
+osc.frequency.value = freq;
+g.gain.setValueAtTime(0, audioCtx.currentTime + when);
+g.gain.linearRampToValueAtTime(vol, audioCtx.currentTime + when + 0.02);
+g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + when + dur);
+osc.connect(g); g.connect(masterGain);
+osc.start(audioCtx.currentTime + when);
+osc.stop(audioCtx.currentTime + when + dur + 0.05);
+} catch(e) {}
+}
+function playNoise(dur, vol) {
+if (!audioCtx) return;
+vol = vol || 0.06;
+try {
+const bufSize = audioCtx.sampleRate * dur;
+const buf = audioCtx.createBuffer(1, bufSize, audioCtx.sampleRate);
+const data = buf.getChannelData(0);
+for (let i = 0; i < bufSize; i++) data[i] = Math.random() * 2 - 1;
+const src = audioCtx.createBufferSource();
+src.buffer = buf;
+const g = audioCtx.createGain();
+g.gain.setValueAtTime(vol, audioCtx.currentTime);
+g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
+src.connect(g); g.connect(masterGain);
+src.start();
+} catch(e) {}
+}
+function stopTheme() { if (themeLoopId) { clearInterval(themeLoopId); themeLoopId = null; } currentAudioTheme = null; }
+function startTheme(name, notes, interval, wave, vol) {
+stopTheme();
+currentAudioTheme = name;
+wave = wave || 'sine'; vol = vol || 0.1;
+let i = 0;
+themeLoopId = setInterval(function() {
+if (!audioCtx || currentAudioTheme !== name) return;
+playTone(notes[i % notes.length], interval/1000 * 1.2, wave, vol);
+playTone(notes[i % notes.length] * 0.5, interval/1000 * 1.5, 'triangle', vol * 0.5);
+i++;
+}, interval);
+}
+function themeVillage() { startTheme('village', [523.25,587.33,659.25,783.99,659.25,587.33], 380, 'sine', 0.1); }
+function themeForest() { startTheme('forest', [220,233.08,246.94,261.63,246.94,233.08], 620, 'sine', 0.12); }
+function themeDesert() { startTheme('desert', [293.66,311.13,349.23,392,349.23,311.13], 480, 'triangle', 0.11); }
+function themeTundra() { startTheme('tundra', [587.33,659.25,698.46,659.25], 550, 'sine', 0.09); }
+function themeVolcano() { startTheme('volcano', [110,130.81,146.83,164.81], 400, 'sawtooth', 0.1); }
+function themeCoral() { startTheme('coral', [440,493.88,523.25,493.88], 450, 'triangle', 0.09); }
+function themeCapital() { startTheme('capital', [523.25,659.25,783.99,1046.5], 400, 'sine', 0.12); }
+function themeBoss() { startTheme('boss', [82.41,87.31,92.5,98], 350, 'sawtooth', 0.13); }
+function themeLake() { startTheme('lake', [392,440,493.88,523.25,493.88,440], 500, 'sine', 0.09); }
+function themeFinalBoss() { startTheme('final', [55,58.27,61.74,65.41], 280, 'sawtooth', 0.15); }
+function themeVictory() { startTheme('victory', [523.25,659.25,783.99,1046.5,783.99,659.25], 300, 'sine', 0.14); }
+function themeDimension() { startTheme('dim', [110,103.83,98,92.5,87.31], 700, 'sine', 0.13); }
+function themeOcean() { startTheme('ocean', [196,220,246.94,220,196,174.61], 650, 'sine', 0.11); }
+function themeIsland() { startTheme('island', [329.63,392,440,392,329.63,293.66], 550, 'triangle', 0.12); }
+function themeSpiderBoss() { startTheme('spiderboss', [146.83,155.56,164.81,174.61,164.81,155.56], 420, 'triangle', 0.15); }
+function themeCentipedeBoss() { startTheme('centiboss', [73.42,77.78,82.41,87.31], 300, 'sawtooth', 0.16); }
+function themeCamelKing() { startTheme('camelking', [130.81,123.47,116.54,110], 500, 'sawtooth', 0.17); }
+function sfxAttack() { playNoise(0.06, 0.06); playTone(180, 0.08, 'square', 0.06); }
+function sfxHit() { playTone(120, 0.1, 'sawtooth', 0.08); }
+function sfxLoot() { playTone(523.25, 0.12, 'sine', 0.1); playTone(659.25, 0.12, 'sine', 0.1, 0.08); playTone(783.99, 0.15, 'sine', 0.1, 0.16); }
+function sfxLevel() { [523.25,659.25,783.99,1046.5].forEach(function(f,i){ playTone(f,0.16,'sine',0.1,i*0.08); }); }
+function sfxCast() { playTone(660, 0.15, 'sine', 0.1); playNoise(0.1, 0.05); }
+function sfxWhoosh() { playNoise(0.4, 0.08); playTone(80, 0.3, 'sine', 0.1); }
+function sfxBoom() { playNoise(0.6, 0.15); playTone(50, 0.5, 'sawtooth', 0.14); }
+function sfxBuild() { [392, 523.25, 659.25].forEach(function(f,i){ playTone(f,0.12,'triangle',0.1,i*0.06); }); }
+function sfxDelete() { [659.25, 523.25, 392].forEach(function(f,i){ playTone(f,0.12,'triangle',0.1,i*0.06); }); }
+function sfxEquip() { playTone(440, 0.1, 'triangle', 0.12); playTone(660, 0.15, 'triangle', 0.12, 0.08); }
+function sfxBoat() { playTone(220, 0.4, 'sine', 0.12); playTone(196, 0.5, 'sine', 0.12, 0.3); }
+
+// ============ BIOMES ============
+const BIOMES = [
+{ name:'Capital', fog:0xcceeFF, ground:0xcc9944, theme:'capital', rIn:0, rOut:200 },
+{ name:'Village Plains', fog:0x87ceeb, ground:0x4a8a2a, theme:'village', rIn:200, rOut:800 },
+{ name:'Dark Forest', fog:0x0a0a12, ground:0x1a3a1a, theme:'forest', rIn:800, rOut:1500 },
+{ name:'Sand Desert', fog:0xe8c47a, ground:0xe8c47a, theme:'desert', rIn:1700, rOut:2400 },
+{ name:'Frozen Tundra', fog:0xaaccee, ground:0xcceeFF, theme:'tundra', rIn:2400, rOut:2900 },
+{ name:'Molten Volcano', fog:0x2a0505, ground:0x4a1a0a, theme:'volcano', rIn:2900, rOut:3500 },
+{ name:'Coral Reef', fog:0x4466aa, ground:0x66aacc, theme:'coral', rIn:3500, rOut:4000 }
+];
+
+const CFG = {
+WORLD: 4500,
+MOUNTAIN_INNER: 4000,
+MOUNTAIN_OUTER: 4500,
+PLAYER_SPEED: 0.42,
+ENEMY_COUNT: 150,
+ENEMY_HP: 100,
+ENEMY_DMG: 8,
+ENEMY_SPEED: 0.08,
+ATTACK_RANGE: 5,
+ATTACK_CD: 10,
+INTERACT: 8,
+CART_SPEED: 0.55,
+CART_TURN: 0.045,
+LAKE_X: -1500,
+LAKE_Z: 1500,
+LAKE_R: 130,
+DIMENSION_R: 120,
+CAM_DISTANCE: 8,
+CAM_HEIGHT: 4,
+CAM_LOOK_HEIGHT: 2,
+OCEAN_CENTER_X: 5000,
+OCEAN_CENTER_Z: 5000,
+OCEAN_RADIUS: 1500,
+ISLAND_RADIUS: 200,
+BOAT_X: 3900,
+BOAT_Z: 3900,
+};
+
+// ============ STATE ============
+let scene, camera, renderer, controls;
+let gameActive = false;
+let mouseOn = true;
+let player = {
+mesh:null, hp:300, maxHp:300, cd:0, kills:0, gold:100, alive:true,
+data:null, inv:{}, tool:false,
+baseMaxHp: 300, baseDmg: 80,
+equipped: { weapon: null, armor: null, helmet: null }
+};
+let enemies = [], bosses = [], currentBoss = null;
+let hills = [], npcs = [], chests = [], vehicles = [], food = [];
+let statueColliders = [];
+let playerHouses = [];
+let camelSpiders = [];
+let boat = null;
+let keys = {w:0,a:0,s:0,d:0,space:0,e:0,f:0,i:0,h:0,x:0};
+let currentBiomeTheme = 'village';
+let bossKills = 0;
+let ridingCart = null;
+let spiderBoss = null, centipedeBoss = null, camelKingBoss = null;
+let sandstorm = { active: false, intensity: 0 };
+let finalBoss = null;
+let gameWon = false;
+let inDimension = false;
+let onIsland = false;
+let dimensionOrigin = { x: 0, y: 0, z: -10000 };
+let spiderArenaOrigin = { x: -800, z: 1000 };
+let centipedeArenaOrigin = { x: 2000, z: 1800 };
+let islandOrigin = { x: 5000, z: 5000 };
+let dimensionArena = null;
+let spiderBossDefeated = false;
+let centipedeBossDefeated = false;
+let camelKingDefeated = false;
+let spiderArenaCutsceneShown = false;
+let centipedeArenaCutsceneShown = false;
+let camelKingCutsceneShown = false;
+let dimensionCutsceneShown = false;
+let fishing = { active: false, marker: 0, dir: 1, zoneStart: 0, zoneEnd: 0, speed: 0.02 };
+let nearLake = false;
+let nearBoat = false;
+let cutsceneQueue = [];
+let cutsceneActive = false;
+let pendingCutsceneComplete = null;
+let camYaw = 0;
+let camPitch = -0.3;
+let buildMode = 'none';
+let ghostHut = null;
+let raycaster = null;
+
+const uiEl = document.getElementById('ui');
+const pnEl = document.getElementById('pn');
+const hpEl = document.getElementById('hpfill');
+const killsEl = document.getElementById('kills');
+const goldEl = document.getElementById('gold');
+const themeEl = document.getElementById('theme');
+const invEl = document.getElementById('inv');
+const bossEl = document.getElementById('boss');
+const topRight = document.getElementById('topright');
+const centerEl = document.getElementById('center');
+const startBtn = document.getElementById('startBtn');
+
+// ============ STATS / EQUIPMENT ============
+function recalcStats() {
+player.data.dmg = player.baseDmg;
+let bonusMaxHp = 0;
+if (player.equipped.weapon) {
+const item = getItem(player.equipped.weapon);
+if (item.dmgBonus) player.data.dmg += item.dmgBonus;
+}
+if (player.equipped.armor) {
+const item = getItem(player.equipped.armor);
+if (item.hpBonus) bonusMaxHp += item.hpBonus;
+}
+if (player.equipped.helmet) {
+const item = getItem(player.equipped.helmet);
+if (item.hpBonus) bonusMaxHp += item.hpBonus;
+}
+const oldMax = player.maxHp;
+player.maxHp = player.baseMaxHp + bonusMaxHp;
+if (player.hp > player.maxHp) player.hp = player.maxHp;
+if (player.maxHp > oldMax) {
+player.hp = Math.min(player.maxHp, player.hp + (player.maxHp - oldMax));
+}
+hpEl.style.width = (player.hp / player.maxHp * 100) + '%';
+updateEquipHud();
+}
+function updateEquipHud() {
+if (!player.equipped.weapon && !player.equipped.armor && !player.equipped.helmet) {
+equipHud.style.display = 'none';
+return;
+}
+equipHud.style.display = 'block';
+eqWeapon.textContent = 'Weapon: ' + (player.equipped.weapon || 'none');
+eqArmor.textContent = 'Armor: ' + (player.equipped.armor || 'none');
+eqHelmet.textContent = 'Helmet: ' + (player.equipped.helmet || 'none');
+}
+function equipItem(name) {
+const item = getItem(name);
+if (item.type === 'weapon') {
+if (player.equipped.weapon === name) {
+player.equipped.weapon = null;
+showMsg('Unequipped ' + name, 1500);
+} else {
+player.equipped.weapon = name;
+showMsg('Equipped ' + name + ' (+' + item.dmgBonus + ' DMG)', 2000);
+}
+} else if (item.type === 'armor') {
+if (player.equipped.armor === name) {
+player.equipped.armor = null;
+showMsg('Unequipped ' + name, 1500);
+} else {
+player.equipped.armor = name;
+showMsg('Equipped ' + name + ' (+' + item.hpBonus + ' Max HP)', 2000);
+}
+} else if (item.type === 'helmet') {
+if (player.equipped.helmet === name) {
+player.equipped.helmet = null;
+showMsg('Unequipped ' + name, 1500);
+} else {
+player.equipped.helmet = name;
+showMsg('Equipped ' + name + ' (+' + item.hpBonus + ' Max HP)', 2000);
+}
+}
+recalcStats();
+sfxEquip();
+renderInventory();
+}
+
+// ============ CUTSCENE ============
+function showNextCutsceneLine() {
+if (cutsceneQueue.length === 0) {
+cutsceneEl.style.display = 'none';
+cutsceneActive = false;
+if (pendingCutsceneComplete) {
+const cb = pendingCutsceneComplete;
+pendingCutsceneComplete = null;
+cb();
+}
+return;
+}
+const line = cutsceneQueue.shift();
+cutsceneText.classList.remove('visible');
+cutsceneSpeaker.classList.remove('visible');
+cutsceneNext.classList.remove('visible');
+if (line.shake) {
+cutsceneEl.classList.add('shake');
+setTimeout(() => cutsceneEl.classList.remove('shake'), 500);
+}
+if (line.flash) {
+cutsceneEl.classList.add('flash');
+setTimeout(() => cutsceneEl.classList.remove('flash'), 500);
+}
+if (line.bg) cutsceneBg.style.background = line.bg;
+setTimeout(() => {
+cutsceneSpeaker.textContent = line.speaker || '';
+cutsceneText.textContent = line.text || '';
+cutsceneChar.textContent = line.char || '🦗';
+cutsceneText.classList.add('visible');
+cutsceneSpeaker.classList.add('visible');
+cutsceneNext.classList.add('visible');
+if (line.shake) sfxBoom();
+else if (line.whoosh) sfxWhoosh();
+else sfxLoot();
+}, 200);
+}
+function startCutscene(lines, onComplete) {
+cutsceneQueue = lines.slice();
+cutsceneActive = true;
+pendingCutsceneComplete = onComplete;
+if (controls) { try { controls.unlock(); } catch(e) {} }
+cutsceneEl.style.display = 'flex';
+cutsceneEl.classList.add('flash');
+setTimeout(() => cutsceneEl.classList.remove('flash'), 500);
+sfxWhoosh();
+showNextCutsceneLine();
+}
+cutsceneNext.onclick = showNextCutsceneLine;
+
+// ============ RESTART ============
+restartBtn.onclick = () => {
+if (controls) { try { controls.unlock(); } catch(e) {} }
+stopTheme();
+document.querySelectorAll('canvas:not(#minimap)').forEach(c => c.remove());
+gameActive = false;
+ridingCart = null;
+enemies = []; bosses = []; currentBoss = null;
+hills = []; npcs = []; chests = []; vehicles = []; food = [];
+statueColliders = []; playerHouses = [];
+camelSpiders = [];
+buildMode = 'none';
+if (ghostHut) { scene.remove(ghostHut); ghostHut = null; }
+spiderBoss = null; centipedeBoss = null; camelKingBoss = null;
+spiderBossDefeated = false; centipedeBossDefeated = false; camelKingDefeated = false;
+spiderArenaCutsceneShown = false; centipedeArenaCutsceneShown = false; camelKingCutsceneShown = false;
+dimensionCutsceneShown = false;
+finalBoss = null;
+gameWon = false;
+inDimension = false;
+onIsland = false;
+sandstorm = { active: false, intensity: 0 };
+fishing = { active: false, marker: 0, dir: 1, zoneStart: 0, zoneEnd: 0, speed: 0.02 };
+keys = {w:0,a:0,s:0,d:0,space:0,e:0,f:0,i:0,h:0,x:0};
+bossKills = 0;
+uiEl.style.display = 'none';
+topRight.style.display = 'none';
+controlsBar.style.display = 'none';
+restartBtn.style.display = 'none';
+bossHpEl.style.display = 'none';
+invPanel.style.display = 'none';
+ridingEl.style.display = 'none';
+fishUI.style.display = 'none';
+cutsceneEl.style.display = 'none';
+cutsceneActive = false;
+msgEl.style.display = 'none';
+promptEl.style.display = 'none';
+buildHint.style.display = 'none';
+deleteHint.style.display = 'none';
+boatHint.style.display = 'none';
+equipHud.style.display = 'none';
+minimap.style.display = 'none';
+minimapLabel.style.display = 'none';
+centerEl.style.display = 'block';
+errEl.style.display = 'none';
+showMsg('Restarted', 2000);
+};
+
+startBtn.onclick = () => {
+const name = nameFirstSel.value + ' ' + nameSecondSel.value;
+pnEl.textContent = name.toUpperCase();
+centerEl.style.display = 'none';
+uiEl.style.display = 'block';
+topRight.style.display = 'flex';
+controlsBar.style.display = 'block';
+restartBtn.style.display = 'block';
+minimap.style.display = 'block';
+minimapLabel.style.display = 'block';
+try { initAudio(); startGame(); } catch(e) { err('Start failed: '+e.message); console.error(e); }
+};
+
+// ============ HILLS ============
+function getGroundHeight(x,z) {
+if (inDimension) return 0;
+if (onIsland) return 0;
+let y = 0;
+for (let i = 0; i < hills.length; i++) {
+const h = hills[i];
+const dx = x-h.x, dz = z-h.z;
+const dist = Math.sqrt(dx*dx + dz*dz);
+if (dist < h.r) {
+const t = 1 - dist/h.r;
+const b = Math.sin(t*Math.PI/2);
+y += h.h * b * b;
+}
+}
+const ldx = x - CFG.LAKE_X, ldz = z - CFG.LAKE_Z;
+const ldist = Math.sqrt(ldx*ldx + ldz*ldz);
+if (ldist < CFG.LAKE_R) {
+const t = 1 - ldist/CFG.LAKE_R;
+y -= t * 1.2;
+}
+return y;
+}
+function inHill(x, z, pad) {
+pad = pad || 0;
+for (let i = 0; i < hills.length; i++) {
+const h = hills[i];
+const dx = x-h.x, dz = z-h.z;
+if (Math.sqrt(dx*dx + dz*dz) < h.r + pad) return true;
+}
+return false;
+}
+function addHill(x,z,r,h,color) {
+hills.push({x,z,r,h});
+const geo = new THREE.SphereGeometry(r, 24, 12, 0, Math.PI*2, 0, Math.PI/2);
+const mat = new THREE.MeshStandardMaterial({color, roughness:0.9});
+const m = new THREE.Mesh(geo, mat);
+m.scale.y = h/r;
+m.position.set(x, 0, z);
+m.receiveShadow = true;
+scene.add(m);
+}
+
+// ============ COLLISION ============
+function addStatueCollider(x, z, r) { statueColliders.push({x, z, r: r || 18}); }
+function collides(x, z, radius) {
+if (inDimension) return Math.sqrt(x*x + z*z) > CFG.DIMENSION_R - 5;
+if (onIsland) {
+const d = Math.hypot(x - islandOrigin.x, z - islandOrigin.z);
+if (d > CFG.ISLAND_RADIUS - 5) return true;
+}
+radius = radius || 1.5;
+for (let i = 0; i < statueColliders.length; i++) {
+const s = statueColliders[i];
+const dx = x-s.x, dz = z-s.z;
+if (Math.sqrt(dx*dx + dz*dz) < s.r + radius) return true;
+}
+return false;
+}
+
+// ============ START ============
+function startGame() {
+loadEl.textContent = 'Building world...';
+scene = new THREE.Scene();
+scene.background = new THREE.Color(0xcceeFF);
+scene.fog = new THREE.Fog(0xcceeFF, 150, 700);
+camera = new THREE.PerspectiveCamera(75, innerWidth/innerHeight, 0.1, 5000);
+renderer = new THREE.WebGLRenderer({antialias:true});
+renderer.setSize(innerWidth, innerHeight);
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+document.body.appendChild(renderer.domElement);
+
+controls = new PointerLockControls(camera, renderer.domElement);
+scene.add(controls.getObject());
+renderer.domElement.onclick = (e) => {
+if (!gameActive || !mouseOn || cutsceneActive) return;
+if (buildMode === 'place' && ghostHut) {
+placeHutAtGhost();
+return;
+}
+if (document.pointerLockElement !== renderer.domElement) controls.lock();
+};
+
+raycaster = new THREE.Raycaster();
+
+document.addEventListener('mousemove', (e) => {
+if (!gameActive || !mouseOn) return;
+if (document.pointerLockElement !== renderer.domElement) return;
+camYaw -= e.movementX * 0.0025;
+camPitch -= e.movementY * 0.0025;
+camPitch = Math.max(-1.2, Math.min(0.6, camPitch));
+});
+
+scene.add(new THREE.AmbientLight(0x8899aa, 0.75));
+const sun = new THREE.DirectionalLight(0xfff5e0, 1.2);
+sun.position.set(200, 300, 150);
+sun.castShadow = true;
+sun.shadow.mapSize.width = 1024; sun.shadow.mapSize.height = 1024;
+sun.shadow.camera.left = -300; sun.shadow.camera.right = 300;
+sun.shadow.camera.top = 300; sun.shadow.camera.bottom = -300;
+scene.add(sun);
+
+const firstWord = nameFirstSel.value;
+const charColor = colorForName(firstWord);
+player.data = { color: charColor, speed: 0.42, dmg: 80, hp: 300 };
+player.baseDmg = 80;
+player.baseMaxHp = 300;
+player.hp = 300; player.maxHp = 300;
+player.equipped = { weapon: null, armor: null, helmet: null };
+
+player.mesh = makeMantis(charColor, 0.85);
+player.mesh.position.set(0, 0.9, 80);
+player.mesh.castShadow = true;
+scene.add(player.mesh);
+
+const base = new THREE.Mesh(
+new THREE.CircleGeometry(CFG.MOUNTAIN_INNER, 64),
+new THREE.MeshStandardMaterial({color:0x3a5a2a, roughness:0.95})
+);
+base.rotation.x = -Math.PI/2;
+base.position.y = -0.1;
+base.receiveShadow = true;
+scene.add(base);
+
+BIOMES.forEach((b, i) => {
+if (i === 0) return;
+const ring = new THREE.Mesh(
+new THREE.RingGeometry(b.rIn, b.rOut, 96),
+new THREE.MeshStandardMaterial({color:b.ground, roughness:0.9, side:THREE.DoubleSide})
+);
+ring.rotation.x = -Math.PI/2;
+ring.position.y = 0.02 + i * 0.001;
+ring.receiveShadow = true;
+scene.add(ring);
+});
+
+const capGround = new THREE.Mesh(
+new THREE.CircleGeometry(BIOMES[0].rOut, 64),
+new THREE.MeshStandardMaterial({color:BIOMES[0].ground, roughness:0.85})
+);
+capGround.rotation.x = -Math.PI/2;
+capGround.position.y = 0.08;
+capGround.receiveShadow = true;
+scene.add(capGround);
+
+addHill(60, 380, 40, 6, 0x5a9a3a);
+addHill(-80, 300, 45, 7, 0x5a9a3a);
+for (let i=0;i<25;i++){
+const a = Math.random()*Math.PI*2;
+const r = 850 + Math.random()*650;
+addHill(Math.cos(a)*r, Math.sin(a)*r, 40 + Math.random()*40, 8 + Math.random()*12, 0x1a3a1a);
+}
+for (let i=0;i<20;i++){
+const a = Math.random()*Math.PI*2;
+const r = 1700 + Math.random()*700;
+addHill(Math.cos(a)*r, Math.sin(a)*r, 60 + Math.random()*30, 5 + Math.random()*5, 0xd4a760);
+}
+for (let i=0;i<30;i++){
+const a = Math.random()*Math.PI*2;
+const r = 2400 + Math.random()*1600;
+addHill(Math.cos(a)*r, Math.sin(a)*r, 50 + Math.random()*40, 10 + Math.random()*12, 0x555555);
+}
+
+buildGiantMountain(centipedeArenaOrigin.x, centipedeArenaOrigin.z);
+
+(function(){
+const ridgeR = 1580;
+const passageAngles = [Math.PI*0.25, Math.PI*1.0, Math.PI*1.7];
+const mountainMat = new THREE.MeshStandardMaterial({color:0x5a5a5a, roughness:0.95});
+const count = 100;
+for (let i=0;i<count;i++){
+const angle = (i/count) * Math.PI * 2;
+let skip = false;
+for (const pa of passageAngles) {
+let diff = Math.abs(angle - pa);
+while (diff > Math.PI) diff = Math.abs(diff - Math.PI*2);
+if (diff < 0.35) { skip = true; break; }
+}
+if (skip) continue;
+const x = Math.cos(angle) * ridgeR;
+const z = Math.sin(angle) * ridgeR;
+const h = 30 + Math.random()*25;
+const w = 12 + Math.random()*8;
+const m = new THREE.Mesh(new THREE.ConeGeometry(w, h, 6), mountainMat);
+m.position.set(x, h/2, z);
+m.rotation.y = Math.random()*Math.PI*2;
+m.castShadow = true;
+scene.add(m);
+}
+})();
+
+buildMountainBorder();
+
+const treeGroup = new THREE.Group();
+for (let i=0;i<800;i++){
+const a = Math.random()*Math.PI*2;
+const r = 850 + Math.random()*600;
+const x = Math.cos(a)*r, z = Math.sin(a)*r;
+if (inHill(x, z, -5)) continue;
+if (Math.hypot(x - spiderArenaOrigin.x, z - spiderArenaOrigin.z) < 40) continue;
+const ty = getGroundHeight(x,z);
+treeGroup.add(makeTallTree(x, ty, z));
+}
+scene.add(treeGroup);
+
+(function(){
+const cx = CFG.LAKE_X, cz = CFG.LAKE_Z, r = CFG.LAKE_R;
+const water = new THREE.Mesh(
+new THREE.CircleGeometry(r, 48),
+new THREE.MeshStandardMaterial({color:0x2a7aaa, emissive:0x0a2a4a, roughness:0.15, metalness:0.4, transparent:true, opacity:0.85})
+);
+water.rotation.x = -Math.PI/2;
+water.position.set(cx, 0.25, cz);
+water.receiveShadow = true;
+scene.add(water);
+const shore = new THREE.Mesh(
+new THREE.RingGeometry(r, r + 8, 48),
+new THREE.MeshStandardMaterial({color:0xc8b880, roughness:0.9, side:THREE.DoubleSide})
+);
+shore.rotation.x = -Math.PI/2;
+shore.position.set(cx, 0.15, cz);
+scene.add(shore);
+})();
+
+buildOcean();
+buildIsland();
+buildBoat();
+
+buildCapital(0, 0);
+buildVillage(1100, 500, 2);
+buildVillage(1800, 1200, 3);
+buildVillage(2600, 2000, 4);
+buildVillage(3300, 2700, 5);
+buildVillage(3800, 3500, 6);
+
+// ENEMY COUNT INCREASED — spawn in a wider scatter
+for (let i=0;i<CFG.ENEMY_COUNT;i++){ spawnEnemy(); }
+
+spawnSpiderLair();
+spawnCentipedeLair();
+buildDimensionArena();
+
+recalcStats();
+updateCameraPosition();
+gameActive = true;
+animate();
+loadEl.style.display = 'none';
+themeCapital();
+showMsg('Welcome, ' + nameFirstSel.value + ' ' + nameSecondSel.value + '!', 3500);
+}
+
+// ============ GIANT MOUNTAIN ============
+function buildGiantMountain(x, z) {
+const g = new THREE.Group();
+const mountainMat = new THREE.MeshStandardMaterial({color:0x6a5a4a, roughness:0.95});
+const h = 120;
+const w = 60;
+const main = new THREE.Mesh(new THREE.ConeGeometry(w, h, 8), mountainMat);
+main.position.set(x, h/2, z);
+main.castShadow = true;
+main.receiveShadow = true;
+g.add(main);
+const cap = new THREE.Mesh(new THREE.ConeGeometry(w*0.35, h*0.2, 8), new THREE.MeshStandardMaterial({color:0xf5f5f5}));
+cap.position.set(x, h*0.9, z);
+g.add(cap);
+const plateau = new THREE.Mesh(
+new THREE.CylinderGeometry(30, 32, 3, 20),
+new THREE.MeshStandardMaterial({color:0x8a7a5a, roughness:0.9})
+);
+plateau.position.set(x, h - 2, z);
+plateau.receiveShadow = true;
+g.add(plateau);
+for (let i=0;i<10;i++){
+const a = (i/10) * Math.PI * 2;
+const rock = new THREE.Mesh(
+new THREE.DodecahedronGeometry(2 + Math.random()*2),
+new THREE.MeshStandardMaterial({color:0x5a4a3a, roughness:0.9})
+);
+rock.position.set(x + Math.cos(a)*25, h - 1, z + Math.sin(a)*25);
+rock.castShadow = true;
+g.add(rock);
+}
+scene.add(g);
+}
+
+// ============ OCEAN + ISLAND + BOAT ============
+function buildOcean() {
+const ox = CFG.OCEAN_CENTER_X, oz = CFG.OCEAN_CENTER_Z;
+const r = CFG.OCEAN_RADIUS;
+const water = new THREE.Mesh(
+new THREE.CircleGeometry(r, 64),
+new THREE.MeshStandardMaterial({color: 0x1a5a8a, emissive: 0x082838, roughness: 0.1, metalness: 0.5, transparent: true, opacity: 0.9})
+);
+water.rotation.x = -Math.PI/2;
+water.position.set(ox, 0.3, oz);
+water.receiveShadow = true;
+scene.add(water);
+const shore = new THREE.Mesh(
+new THREE.RingGeometry(r, r + 12, 64),
+new THREE.MeshStandardMaterial({color: 0xd4c4a0, roughness: 0.9, side: THREE.DoubleSide})
+);
+shore.rotation.x = -Math.PI/2;
+shore.position.set(ox, 0.15, oz);
+shore.receiveShadow = true;
+scene.add(shore);
+}
+function buildIsland() {
+const ox = islandOrigin.x, oz = islandOrigin.z;
+const r = CFG.ISLAND_RADIUS;
+const sand = new THREE.Mesh(
+new THREE.CircleGeometry(r, 48),
+new THREE.MeshStandardMaterial({color: 0xe8d4a0, roughness: 0.95})
+);
+sand.rotation.x = -Math.PI/2;
+sand.position.set(ox, 1.5, oz);
+sand.receiveShadow = true;
+scene.add(sand);
+const grass = new THREE.Mesh(
+new THREE.CircleGeometry(r * 0.7, 40),
+new THREE.MeshStandardMaterial({color: 0x5a8a3a, roughness: 0.9})
+);
+grass.rotation.x = -Math.PI/2;
+grass.position.set(ox, 1.55, oz);
+grass.receiveShadow = true;
+scene.add(grass);
+for (let i=0;i<14;i++){
+const a = (i/14) * Math.PI * 2 + Math.random()*0.2;
+const rr = r * 0.55 + Math.random()*20;
+const px = ox + Math.cos(a)*rr;
+const pz = oz + Math.sin(a)*rr;
+const tree = new THREE.Group();
+const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.6, 8, 6), new THREE.MeshStandardMaterial({color: 0x6a4a2a, roughness: 0.95}));
+trunk.position.y = 4;
+trunk.castShadow = true;
+tree.add(trunk);
+for (let j=0;j<6;j++){
+const leaf = new THREE.Mesh(new THREE.PlaneGeometry(4, 1.2), new THREE.MeshStandardMaterial({color: 0x3a7a3a, side: THREE.DoubleSide, roughness: 0.8}));
+const la = (j/6) * Math.PI * 2;
+leaf.position.set(Math.cos(la)*2, 8.2, Math.sin(la)*2);
+leaf.rotation.y = -la;
+leaf.rotation.x = -0.4;
+leaf.castShadow = true;
+tree.add(leaf);
+}
+tree.position.set(px, 1.5, pz);
+scene.add(tree);
+}
+for (let i=0;i<20;i++){
+const a = Math.random() * Math.PI * 2;
+const rr = Math.random() * r * 0.9;
+const rock = new THREE.Mesh(
+new THREE.DodecahedronGeometry(1 + Math.random()*2),
+new THREE.MeshStandardMaterial({color: 0x8a7a5a, roughness: 0.9})
+);
+rock.position.set(ox + Math.cos(a)*rr, 2, oz + Math.sin(a)*rr);
+rock.rotation.set(Math.random(), Math.random(), Math.random());
+rock.castShadow = true;
+scene.add(rock);
+}
+}
+function buildBoat() {
+const bx = CFG.BOAT_X, bz = CFG.BOAT_Z;
+const g = new THREE.Group();
+const hull = new THREE.Mesh(new THREE.BoxGeometry(3, 1, 5), new THREE.MeshStandardMaterial({color: 0x8b5a2b, roughness: 0.7}));
+hull.position.y = 0.5;
+g.add(hull);
+const bow = new THREE.Mesh(new THREE.ConeGeometry(1.5, 2, 4), new THREE.MeshStandardMaterial({color: 0x8b5a2b, roughness: 0.7}));
+bow.rotation.y = Math.PI / 4;
+bow.rotation.x = Math.PI / 2;
+bow.position.set(0, 0.5, -3);
+g.add(bow);
+const mast = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 5, 6), new THREE.MeshStandardMaterial({color: 0x3a2510}));
+mast.position.set(0, 3, 0);
+g.add(mast);
+const sail = new THREE.Mesh(new THREE.PlaneGeometry(3, 3), new THREE.MeshStandardMaterial({color: 0xf5f5dc, side: THREE.DoubleSide, roughness: 0.9}));
+sail.position.set(0, 4, 0);
+g.add(sail);
+g.position.set(bx, 0.5, bz);
+scene.add(g);
+boat = { mesh: g, x: bx, z: bz };
+}
+
+// ============ MOUNTAIN BORDER ============
+function buildMountainBorder() {
+const mountainGroup = new THREE.Group();
+const mountainMat = new THREE.MeshStandardMaterial({color:0x4a4a4a, roughness:0.9});
+const snowMat = new THREE.MeshStandardMaterial({color:0xf0f0f0, roughness:0.7});
+const count = 180;
+for (let i=0;i<count;i++){
+const angle = (i/count)*Math.PI*2;
+const radius = CFG.MOUNTAIN_INNER + Math.random()*(CFG.MOUNTAIN_OUTER - CFG.MOUNTAIN_INNER);
+const x = Math.cos(angle)*radius;
+const z = Math.sin(angle)*radius;
+const h = 40 + Math.random()*40;
+const w = 15 + Math.random()*15;
+const mountain = new THREE.Mesh(new THREE.ConeGeometry(w, h, 6), mountainMat);
+mountain.position.set(x, h/2, z);
+mountain.rotation.y = Math.random()*Math.PI*2;
+mountain.castShadow = true;
+mountainGroup.add(mountain);
+const cap = new THREE.Mesh(new THREE.ConeGeometry(w*0.4, h*0.25, 6), snowMat);
+cap.position.set(x, h*0.9, z);
+cap.rotation.y = mountain.rotation.y;
+mountainGroup.add(cap);
+}
+scene.add(mountainGroup);
+const wallMat = new THREE.MeshStandardMaterial({color:0x3a3a3a, roughness:0.95, side:THREE.DoubleSide});
+const wallGeo = new THREE.CylinderGeometry(CFG.MOUNTAIN_INNER - 5, CFG.MOUNTAIN_INNER + 5, 80, 64, 1, true);
+const wall = new THREE.Mesh(wallGeo, wallMat);
+wall.position.y = 40;
+scene.add(wall);
+}
+
+// ============ DIMENSION ARENA ============
+function buildDimensionArena() {
+const ox = dimensionOrigin.x, oz = dimensionOrigin.z;
+const group = new THREE.Group();
+const floor = new THREE.Mesh(new THREE.CircleGeometry(CFG.DIMENSION_R, 48), new THREE.MeshStandardMaterial({color:0x1a0a1a, emissive:0x3a0a4a, roughness:0.7}));
+floor.rotation.x = -Math.PI/2;
+floor.position.set(ox, 0, oz);
+group.add(floor);
+const ring = new THREE.Mesh(new THREE.TorusGeometry(CFG.DIMENSION_R - 3, 2, 12, 64), new THREE.MeshStandardMaterial({color:0x8800ff, emissive:0xaa22ff, emissiveIntensity:0.8}));
+ring.rotation.x = Math.PI/2;
+ring.position.set(ox, 1.5, oz);
+group.add(ring);
+for (let i=0;i<12;i++){
+const a = (i/12) * Math.PI * 2;
+const r = CFG.DIMENSION_R - 15;
+const pillar = new THREE.Mesh(new THREE.CylinderGeometry(1, 1.4, 12, 6), new THREE.MeshStandardMaterial({color:0x2a0a3a, emissive:0x550088, emissiveIntensity:0.5}));
+pillar.position.set(ox + Math.cos(a)*r, 6, oz + Math.sin(a)*r);
+group.add(pillar);
+}
+const throneBase = new THREE.Mesh(new THREE.BoxGeometry(12, 3, 8), new THREE.MeshStandardMaterial({color:0x1a0a0a, emissive:0x220011, roughness:0.8}));
+throneBase.position.set(ox, 1.5, oz - 25);
+group.add(throneBase);
+const throneBack = new THREE.Mesh(new THREE.BoxGeometry(12, 14, 2), new THREE.MeshStandardMaterial({color:0x1a0a0a, emissive:0x330022, roughness:0.8}));
+throneBack.position.set(ox, 10, oz - 28);
+group.add(throneBack);
+for (let i=0;i<6;i++){
+const a = (i/6) * Math.PI * 2;
+const light = new THREE.PointLight(0x8800ff, 3, 60);
+light.position.set(ox + Math.cos(a)*40, 8, oz + Math.sin(a)*40);
+group.add(light);
+}
+const dimLight = new THREE.PointLight(0xaa22ff, 5, 200);
+dimLight.position.set(ox, 30, oz);
+group.add(dimLight);
+scene.add(group);
+dimensionArena = group;
+}
+function spawnFinalBossInDimension() {
+const ox = dimensionOrigin.x, oz = dimensionOrigin.z;
+const lord = makeMantis(0x1a0a0a, 4.5);
+lord.position.set(ox, 0.9, oz - 20);
+lord.rotation.y = 0;
+scene.add(lord);
+const aura = new THREE.PointLight(0xaa00ff, 4, 60);
+aura.position.set(ox, 10, oz - 20);
+scene.add(aura);
+finalBoss = {
+mesh: lord, hp: 12000, maxHp: 12000,
+name: 'The True Lord of Mantis Kind',
+x: ox, z: oz - 20,
+active: true, aura: aura, isDimensionBoss: true
+};
+bossNameEl.textContent = '⚔️ ' + finalBoss.name.toUpperCase() + ' ⚔️';
+bossHpEl.style.display = 'block';
+bossHpInner.style.width = '100%';
+currentBoss = finalBoss;
+themeFinalBoss();
+}
+
+// ============ SPIDER LAIR ============
+function spawnSpiderLair() {
+const bx = spiderArenaOrigin.x, bz = spiderArenaOrigin.z;
+const clearing = new THREE.Mesh(new THREE.CircleGeometry(38, 40), new THREE.MeshStandardMaterial({color: 0x4a7a3a, roughness: 0.9}));
+clearing.rotation.x = -Math.PI/2;
+clearing.position.set(bx, 0.05, bz);
+clearing.receiveShadow = true;
+scene.add(clearing);
+const webGroup = new THREE.Group();
+const webFloor = new THREE.Mesh(new THREE.CircleGeometry(35, 32), new THREE.MeshStandardMaterial({color:0xdddddd, transparent:true, opacity:0.35, side:THREE.DoubleSide}));
+webFloor.rotation.x = -Math.PI/2;
+webFloor.position.set(bx, 0.08, bz);
+webGroup.add(webFloor);
+const lineMat = new THREE.LineBasicMaterial({color:0xffffff, transparent:true, opacity:0.6});
+for (let i=0;i<12;i++){
+const a = (i/12) * Math.PI * 2;
+const pts = [
+new THREE.Vector3(bx, 0.1, bz),
+new THREE.Vector3(bx + Math.cos(a)*35, 0.1, bz + Math.sin(a)*35)
+];
+webGroup.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), lineMat));
+}
+scene.add(webGroup);
+const spider = makeSpider(0x2a2a2a, 4.5);
+spider.position.set(bx, 0.9, bz);
+scene.add(spider);
+spiderBoss = {
+mesh: spider, hp: 5000, maxHp: 5000, name: 'Arachne the Web Tyrant',
+x: bx, z: bz, triggerRadius: 30, active: false, arena: 'forest'
+};
+}
+function spawnCentipedeLair() {
+const bx = centipedeArenaOrigin.x, bz = centipedeArenaOrigin.z;
+const sandMat = new THREE.MeshStandardMaterial({color:0xb89050, roughness:1});
+for (let i=0;i<16;i++){
+const a = (i/16) * Math.PI * 2;
+const r = 30 + Math.random()*15;
+const mound = new THREE.Mesh(new THREE.SphereGeometry(8 + Math.random()*4, 10, 6, 0, Math.PI*2, 0, Math.PI/2), sandMat);
+mound.scale.set(1, 0.3 + Math.random()*0.2, 1);
+mound.position.set(bx + Math.cos(a)*r, 0.1, bz + Math.sin(a)*r);
+scene.add(mound);
+}
+const centi = makeCentipede(0x8a5a2a, 5.0);
+centi.position.set(bx, 118, bz);
+scene.add(centi);
+centipedeBoss = {
+mesh: centi, hp: 4500, maxHp: 4500, name: 'Scolopendra the Sandstorm',
+x: bx, z: bz, triggerRadius: 40, active: false,
+chargeCd: 0, charging: false, chargeDir: new THREE.Vector3(), chargeTimer: 0,
+onMountain: true
+};
+}
+
+// ============ CAMEL SPIDERS + KING ============
+function spawnCamelSpiders() {
+const ox = islandOrigin.x, oz = islandOrigin.z;
+for (let i=0;i<20;i++){
+const a = Math.random() * Math.PI * 2;
+const r = Math.random() * CFG.ISLAND_RADIUS * 0.75;
+const x = ox + Math.cos(a) * r;
+const z = oz + Math.sin(a) * r;
+const spider = makeCamelSpider(0xa87030, 0.9 + Math.random()*0.3);
+spider.position.set(x, 1.6, z);
+scene.add(spider);
+camelSpiders.push({
+mesh: spider,
+hp: 120, maxHp: 120,
+cd: 0,
+speed: 0.06 + Math.random()*0.03,
+wander: Math.random()*Math.PI*2,
+timer: 60 + Math.random()*120
+});
+}
+const king = makeCamelSpider(0x6a4a1a, 3.5);
+king.position.set(ox, 2, oz);
+scene.add(king);
+camelKingBoss = {
+mesh: king, hp: 8000, maxHp: 8000, name: 'The Camel Spider King',
+x: ox, z: oz, triggerRadius: 45, active: false, aura: null
+};
+}
+function makeCamelSpider(color, scale) {
+scale = scale || 1.0;
+const g = new THREE.Group();
+const bc = new THREE.Color(color);
+const dc = bc.clone().multiplyScalar(0.4);
+const thorax = new THREE.Mesh(new THREE.SphereGeometry(0.55*scale, 10, 10), new THREE.MeshStandardMaterial({color:bc, emissive:dc, roughness:0.5}));
+thorax.scale.set(1.2, 0.8, 1.4);
+thorax.position.y = 0.6*scale;
+thorax.castShadow = true;
+g.add(thorax);
+const abdomen = new THREE.Mesh(new THREE.SphereGeometry(0.6*scale, 10, 10), new THREE.MeshStandardMaterial({color:bc, emissive:dc, roughness:0.5}));
+abdomen.position.set(0, 0.6*scale, -0.9*scale);
+abdomen.scale.set(1, 0.9, 1.2);
+abdomen.castShadow = true;
+g.add(abdomen);
+const eyeMat = new THREE.MeshStandardMaterial({color:0xff2222, emissive:0xaa0000});
+for (let i=0;i<2;i++){
+const eye = new THREE.Mesh(new THREE.SphereGeometry(0.12*scale, 6, 6), eyeMat);
+eye.position.set((i===0?-1:1) * 0.22 * scale, 0.75*scale, 0.7*scale);
+g.add(eye);
+}
+for (let s=-1;s<=1;s+=2){
+const fang = new THREE.Mesh(new THREE.ConeGeometry(0.13*scale, 0.5*scale, 5), new THREE.MeshStandardMaterial({color:0x1a1a1a}));
+fang.rotation.x = Math.PI * 0.7;
+fang.position.set(s*0.18*scale, 0.45*scale, 0.75*scale);
+g.add(fang);
+}
+const legMat = new THREE.MeshStandardMaterial({color:0x3a2a1a});
+const legRows = [
+{ zFront: 0.6, zBack: 0.3 }, { zFront: 0.3, zBack: 0.0 },
+{ zFront: 0.0, zBack: -0.3 }, { zFront: -0.3, zBack: -0.7 }
+];
+legRows.forEach((row, i) => {
+for (let s=-1;s<=1;s+=2){
+const legGroup = new THREE.Group();
+const up = new THREE.Mesh(new THREE.CylinderGeometry(0.07*scale, 0.06*scale, 1.3*scale, 5), legMat);
+up.rotation.z = s*Math.PI/2.4;
+up.position.set(s*0.65*scale, 0, 0);
+legGroup.add(up);
+const knee = new THREE.Mesh(new THREE.SphereGeometry(0.09*scale, 5, 5), legMat);
+knee.position.set(s*1.3*scale, 0, 0);
+legGroup.add(knee);
+const lo = new THREE.Mesh(new THREE.CylinderGeometry(0.05*scale, 0.03*scale, 1.0*scale, 5), legMat);
+lo.position.set(s*1.4*scale, -0.5*scale, 0);
+lo.rotation.z = s*0.15;
+legGroup.add(lo);
+const ft = new THREE.Mesh(new THREE.SphereGeometry(0.06*scale, 4, 4), legMat);
+ft.position.set(s*1.5*scale, -1.0*scale, 0);
+legGroup.add(ft);
+legGroup.position.set(0, 0.55*scale, ((row.zFront + row.zBack)/2) * scale);
+legGroup.rotation.x = (i % 2 === 0) ? 0.15 : -0.15;
+g.add(legGroup);
+}
+});
+return g;
+}
+
+// ============ SPAWN ENEMY (MORE + wider scatter) ============
+function spawnEnemy() {
+if (inDimension) return;
+// wider scatter: sometimes spawn in mid-range so enemies show up near villages
+const r = 150 + Math.random() * (CFG.MOUNTAIN_INNER - 300);
+const a = Math.random() * Math.PI * 2;
+const x = Math.cos(a)*r, z = Math.sin(a)*r;
+let bIdx = 1;
+for (let i = 1; i < BIOMES.length; i++) {
+if (r >= BIOMES[i].rIn && r < BIOMES[i].rOut) { bIdx = i; break; }
+}
+let m;
+if (bIdx === 2) {
+const spiderCols = [0x1a1a1a, 0x2a1a0a, 0x3a2a1a, 0x4a2a0a];
+m = makeSpider(spiderCols[Math.floor(Math.random()*spiderCols.length)], 0.8 + Math.random()*0.3);
+} else if (bIdx === 3) {
+const centiCols = [0x8a5a2a, 0xa87030, 0x6a4a2a, 0xb88040];
+m = makeCentipede(centiCols[Math.floor(Math.random()*centiCols.length)], 0.9 + Math.random()*0.3);
+} else {
+const cols = [0x4a2a1a, 0x2a5a1a, 0x8a6a3a, 0x8a9aaa, 0x8a2a1a, 0x3a5a8a];
+m = makeBeetle(cols[(bIdx-1) % cols.length], 1.0, false);
+}
+const y = getGroundHeight(x,z) + 0.9;
+m.position.set(x, y, z);
+scene.add(m);
+enemies.push({
+mesh:m, hp:CFG.ENEMY_HP, cd:Math.random()*40,
+speed:CFG.ENEMY_SPEED+Math.random()*0.03,
+wander:Math.random()*Math.PI*2, timer:60+Math.random()*120,
+biome:bIdx
+});
+}
+
+// ============ MODELS ============
+function makeMantis(color, scale) {
+scale = scale || 1.0;
+const g = new THREE.Group();
+const bc = new THREE.Color(color);
+const dc = bc.clone().multiplyScalar(0.5);
+const lc = bc.clone().lerp(new THREE.Color(0xffffff), 0.3);
+const thorax = new THREE.Mesh(new THREE.CylinderGeometry(0.28*scale, 0.35*scale, 1.6*scale, 8), new THREE.MeshStandardMaterial({color:bc, emissive:dc, roughness:0.5}));
+thorax.rotation.x = Math.PI/2;
+thorax.position.y = 0.7*scale;
+thorax.castShadow = true;
+g.add(thorax);
+const abdomen = new THREE.Mesh(new THREE.SphereGeometry(0.5*scale, 10, 10), new THREE.MeshStandardMaterial({color:bc, emissive:dc, roughness:0.5}));
+abdomen.scale.set(1, 0.85, 1.4);
+abdomen.position.set(0, 0.6*scale, -1.2*scale);
+abdomen.castShadow = true;
+g.add(abdomen);
+const head = new THREE.Mesh(new THREE.ConeGeometry(0.5*scale, 0.9*scale, 3), new THREE.MeshStandardMaterial({color:lc, emissive:dc, roughness:0.4}));
+head.rotation.x = Math.PI/2;
+head.rotation.y = Math.PI/6;
+head.position.set(0, 0.9*scale, 1.2*scale);
+head.castShadow = true;
+g.add(head);
+const eyeMat = new THREE.MeshStandardMaterial({color:0xffdd44, emissive:0xcc8800, emissiveIntensity:0.6});
+for (let s=-1;s<=1;s+=2){
+const eye = new THREE.Mesh(new THREE.SphereGeometry(0.22*scale, 10, 10), eyeMat);
+eye.position.set(s*0.32*scale, 1.0*scale, 1.35*scale);
+g.add(eye);
+}
+const legMat = new THREE.MeshStandardMaterial({color:0x1a1a1a});
+for (let s=-1;s<=1;s+=2){
+const femur = new THREE.Mesh(new THREE.CylinderGeometry(0.1*scale, 0.09*scale, 0.9*scale, 6), legMat);
+femur.rotation.z = s*Math.PI/4;
+femur.rotation.x = -0.5;
+femur.position.set(s*0.5*scale, 1.0*scale, 0.8*scale);
+g.add(femur);
+const tibia = new THREE.Mesh(new THREE.CylinderGeometry(0.08*scale, 0.06*scale, 0.8*scale, 6), legMat);
+tibia.rotation.z = s*Math.PI/5;
+tibia.rotation.x = 1.4;
+tibia.position.set(s*0.6*scale, 1.3*scale, 1.15*scale);
+g.add(tibia);
+}
+const walkRows = [{z: 0.3}, {z: -0.4}, {z: -1.0}, {z: -1.6}];
+walkRows.forEach((row, idx) => {
+for (let s=-1;s<=1;s+=2){
+const lg = new THREE.Group();
+const upLen = (idx < 2 ? 1.0 : 1.1) * scale;
+const up = new THREE.Mesh(new THREE.CylinderGeometry(0.06*scale, 0.05*scale, upLen, 5), legMat);
+up.rotation.z = s*Math.PI/2.3;
+up.position.set(s*upLen*0.42, 0, 0);
+lg.add(up);
+const loLen = 0.9 * scale;
+const lo = new THREE.Mesh(new THREE.CylinderGeometry(0.05*scale, 0.03*scale, loLen, 5), legMat);
+lo.position.set(s*upLen*0.95, -loLen*0.45, 0);
+lg.add(lo);
+lg.position.set(0, 0.55*scale, row.z * scale);
+g.add(lg);
+}
+});
+return g;
+}
+function makeBeetle(color, scale, isPlayer) {
+scale = scale || 1.0;
+const g = new THREE.Group();
+const bc = new THREE.Color(color);
+const dc = bc.clone().multiplyScalar(0.5);
+const body = new THREE.Mesh(new THREE.SphereGeometry(0.9*scale, 12, 12), new THREE.MeshStandardMaterial({color:bc, emissive:dc, roughness:0.4}));
+body.scale.set(1.2, 0.7, 1.4);
+g.add(body);
+const head = new THREE.Mesh(new THREE.SphereGeometry(0.55*scale, 10, 10), new THREE.MeshStandardMaterial({color:dc}));
+head.position.set(0, 0.25*scale, 1.0*scale);
+g.add(head);
+const eyeMat = new THREE.MeshStandardMaterial({color:0xff3333, emissive:0xaa0000});
+for (let s=-1;s<=1;s+=2){
+const eye = new THREE.Mesh(new THREE.SphereGeometry(0.18*scale, 6, 6), eyeMat);
+eye.position.set(s*0.35*scale, 0.45*scale, 1.35*scale);
+g.add(eye);
+}
+const legMat = new THREE.MeshStandardMaterial({color:0x2a2a2a});
+[0.6, 0, -0.6].forEach(zPos => {
+for (let s=-1;s<=1;s+=2){
+const up = new THREE.Mesh(new THREE.CylinderGeometry(0.09*scale, 0.09*scale, 0.7*scale, 5), legMat);
+up.rotation.z = s*Math.PI/2.2;
+up.position.set(s*0.25*scale, 0, zPos*scale);
+g.add(up);
+}
+});
+return g;
+}
+function makeCentipede(color, scale) {
+scale = scale || 1.0;
+const g = new THREE.Group();
+const bc = new THREE.Color(color);
+const dc = bc.clone().multiplyScalar(0.4);
+const legMat = new THREE.MeshStandardMaterial({color:0x1a1a1a});
+const segCount = 10;
+for (let i = 0; i < segCount; i++) {
+const z = 2.0 - i * 0.45;
+const r = 0.5 - i * 0.02;
+const seg = new THREE.Mesh(new THREE.SphereGeometry(r * scale, 8, 8), new THREE.MeshStandardMaterial({color:bc, emissive:dc, roughness:0.5}));
+seg.scale.set(1, 0.75, 1);
+seg.position.set(0, 0.5*scale, z*scale);
+seg.castShadow = true;
+g.add(seg);
+for (let s=-1;s<=1;s+=2){
+const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.05*scale, 0.03*scale, 0.8*scale, 4), legMat);
+leg.rotation.z = s*Math.PI/2.5;
+leg.position.set(s*0.4*scale, 0.3*scale, z*scale);
+g.add(leg);
+}
+}
+const head = new THREE.Mesh(new THREE.SphereGeometry(0.6*scale, 10, 10), new THREE.MeshStandardMaterial({color:dc, emissive:0x220000}));
+head.position.set(0, 0.5*scale, 2.3*scale);
+head.castShadow = true;
+g.add(head);
+const eyeMat = new THREE.MeshStandardMaterial({color:0xff3333, emissive:0xaa0000});
+for (let s=-1;s<=1;s+=2){
+const eye = new THREE.Mesh(new THREE.SphereGeometry(0.14*scale, 6, 6), eyeMat);
+eye.position.set(s*0.3*scale, 0.7*scale, 2.5*scale);
+g.add(eye);
+}
+return g;
+}
+function makeSpider(color, scale) {
+scale = scale || 1.0;
+const g = new THREE.Group();
+const bc = new THREE.Color(color);
+const dc = bc.clone().multiplyScalar(0.4);
+const abdomen = new THREE.Mesh(new THREE.SphereGeometry(0.7*scale, 12, 12), new THREE.MeshStandardMaterial({color:bc, emissive:dc, roughness:0.4}));
+abdomen.position.set(0, 0.65*scale, -0.3*scale);
+abdomen.scale.set(1, 0.9, 1.1);
+abdomen.castShadow = true;
+g.add(abdomen);
+const front = new THREE.Mesh(new THREE.SphereGeometry(0.5*scale, 10, 10), new THREE.MeshStandardMaterial({color:bc, emissive:dc, roughness:0.4}));
+front.position.set(0, 0.6*scale, 0.5*scale);
+front.castShadow = true;
+g.add(front);
+const eyeMat = new THREE.MeshStandardMaterial({color:0xff2222, emissive:0xaa0000});
+const eyePositions = [[-0.2,0.75,0.9],[-0.1,0.78,0.95],[0.1,0.78,0.95],[0.2,0.75,0.9],[-0.15,0.85,0.85],[-0.05,0.88,0.88],[0.05,0.88,0.88],[0.15,0.85,0.85]];
+eyePositions.forEach(p => {
+const eye = new THREE.Mesh(new THREE.SphereGeometry(0.06*scale, 5, 5), eyeMat);
+eye.position.set(p[0]*scale, p[1]*scale, p[2]*scale);
+g.add(eye);
+});
+const legMat = new THREE.MeshStandardMaterial({color:0x1a1a1a});
+const legRows = [
+{ zFront: 1.0, zBack: 0.4 }, { zFront: 0.5, zBack: -0.1 },
+{ zFront: -0.1, zBack: -0.6 }, { zFront: -0.6, zBack: -1.1 }
+];
+legRows.forEach((row, i) => {
+for (let s=-1;s<=1;s+=2){
+const legGroup = new THREE.Group();
+const up = new THREE.Mesh(new THREE.CylinderGeometry(0.08*scale, 0.07*scale, 1.0*scale, 5), legMat);
+up.rotation.z = s*Math.PI/2.5;
+up.position.set(s*0.5*scale, 0, 0);
+legGroup.add(up);
+const knee = new THREE.Mesh(new THREE.SphereGeometry(0.1*scale, 5, 5), legMat);
+knee.position.set(s*1.0*scale, 0, 0);
+legGroup.add(knee);
+const lo = new THREE.Mesh(new THREE.CylinderGeometry(0.06*scale, 0.04*scale, 0.8*scale, 5), legMat);
+lo.position.set(s*1.1*scale, -0.4*scale, 0);
+lo.rotation.z = s*0.2;
+legGroup.add(lo);
+legGroup.position.set(0, 0.6*scale, ((row.zFront + row.zBack)/2) * scale);
+legGroup.rotation.x = (i % 2 === 0) ? 0.2 : -0.2;
+g.add(legGroup);
+}
+});
+return g;
+}
+function makeTallTree(x, y, z) {
+const g = new THREE.Group();
+const h = 20 + Math.random()*15;
+const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.6, 0.8, h, 6), new THREE.MeshStandardMaterial({color:0x2a1a0a}));
+trunk.position.y = h/2;
+trunk.castShadow = true;
+g.add(trunk);
+for (let j=0;j<4;j++){
+const leaf = new THREE.Mesh(new THREE.ConeGeometry(6 - j*1.1, 5, 7), new THREE.MeshStandardMaterial({color:0x0a2a0a}));
+leaf.position.y = h + j*3;
+leaf.castShadow = true;
+g.add(leaf);
+}
+g.position.set(x, y, z);
+return g;
+}
+function buildHutMesh(variant, isGhost) {
+variant = variant || 0;
+const g = new THREE.Group();
+const wallColors = [0x6b4e2e, 0x8b5a2b, 0x5a3e1e, 0x7a5a3a, 0x4a3a2a, 0x9a6a3a];
+const roofColors = [0x2d5a2d, 0x5a2d2d, 0x2d2d5a, 0x5a5a2d, 0x3a5a3a, 0x6a3a2a];
+const wallMat = new THREE.MeshStandardMaterial({color: wallColors[variant % 6], transparent: !!isGhost, opacity: isGhost ? 0.55 : 1});
+const roofMat = new THREE.MeshStandardMaterial({color: roofColors[variant % 6], transparent: !!isGhost, opacity: isGhost ? 0.55 : 1});
+for (let i=0;i<8;i++){
+const a = (i/8)*Math.PI*2;
+const st = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.14, 3, 5), wallMat);
+st.position.set(Math.cos(a)*2.2, 1.5, Math.sin(a)*2.2);
+st.castShadow = !isGhost;
+g.add(st);
+}
+const roof = new THREE.Mesh(new THREE.ConeGeometry(3, 2, 8), roofMat);
+roof.position.y = 3.7;
+roof.castShadow = !isGhost;
+g.add(roof);
+const bedGroup = new THREE.Group();
+const bframe = new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.15, 2.2), new THREE.MeshStandardMaterial({color:0x5a3e1e, transparent: !!isGhost, opacity: isGhost ? 0.5 : 1}));
+bframe.position.set(-0.8, 0.15, 0);
+bedGroup.add(bframe);
+const bmat = new THREE.Mesh(new THREE.BoxGeometry(1.3, 0.2, 2.0), new THREE.MeshStandardMaterial({color:0x4a7a3a, transparent: !!isGhost, opacity: isGhost ? 0.5 : 1}));
+bmat.position.set(-0.8, 0.35, 0);
+bedGroup.add(bmat);
+g.add(bedGroup);
+const foodGroup = new THREE.Group();
+const foodCols = [0xff6b6b, 0xffd93d, 0x6bcB77, 0xff9f43];
+for (let i=0;i<5;i++){
+const berry = new THREE.Mesh(
+new THREE.SphereGeometry(0.18 + Math.random()*0.1, 6, 6),
+new THREE.MeshStandardMaterial({color:foodCols[i % foodCols.length], emissive:0x331100, transparent: !!isGhost, opacity: isGhost ? 0.5 : 1})
+);
+berry.position.set(0.9 + (Math.random()-0.5)*0.4, 0.2, (Math.random()-0.5)*0.4);
+foodGroup.add(berry);
+}
+g.add(foodGroup);
+return g;
+}
+function makeHut(x,z, variant) {
+const g = buildHutMesh(variant, false);
+const gy = getGroundHeight(x,z);
+g.position.set(x, gy, z);
+scene.add(g);
+chests.push({mesh:g, x:x, z:z, type:'bed', insideHut:true});
+food.push({mesh:g, x:x, z:z, type:'food', insideHut:true});
+}
+function makeFood(x,z) {
+const g = new THREE.Group();
+const cols = [0xff6b6b, 0xffd93d, 0x6bcB77, 0xff9f43];
+for (let i=0;i<4;i++){
+const b = new THREE.Mesh(new THREE.SphereGeometry(0.3, 6, 6), new THREE.MeshStandardMaterial({color:cols[i], emissive:0x331100}));
+b.position.set((Math.random()-0.5)*0.8, 0.35, (Math.random()-0.5)*0.8);
+g.add(b);
+}
+const gy = getGroundHeight(x,z);
+g.position.set(x, gy, z);
+scene.add(g);
+return {mesh:g, x:x, z:z, type:'food'};
+}
+function makeChest(x,z, loot) {
+const g = new THREE.Group();
+const base = new THREE.Mesh(new THREE.BoxGeometry(1.5, 1, 1), new THREE.MeshStandardMaterial({color:0x8b5a2b}));
+base.position.y = 0.5;
+g.add(base);
+const lid = new THREE.Mesh(new THREE.BoxGeometry(1.5, 0.3, 1), new THREE.MeshStandardMaterial({color:0x5a3e1e}));
+lid.position.y = 1.15;
+g.add(lid);
+const gy = getGroundHeight(x,z);
+g.position.set(x, gy, z);
+scene.add(g);
+return {mesh:g, x:x, z:z, type:'chest', loot:loot||['Food Berry']};
+}
+function rollLoot() {
+const common = ['Food Berry','Food Berry','Forest Herb','Sharp Claw','Leaf Vest','Bug Cap','Ancient Rune'];
+const uncommon = ['Honey Drop','Bone Blade','Bark Cuirass','Horned Helm','Royal Gem','Fish'];
+const rare = ['Thorn Scythe','Chitin Plate','Crown of Beetleon','Mushroom Stew'];
+const epic = ['Crystal Spear','Crystal Carapace','Capital Crown','Camel Spider Egg'];
+const legendary = ['Venom Fang','Dragon Scale','Mantideus Crown','Camel Spider Fang','Sand Plate'];
+const mythic = ['Mantideus Blade','Void Shell','King Fang','King Crown'];
+const r = Math.random();
+if (r < 0.40) return common[Math.floor(Math.random()*common.length)];
+if (r < 0.65) return uncommon[Math.floor(Math.random()*uncommon.length)];
+if (r < 0.82) return rare[Math.floor(Math.random()*rare.length)];
+if (r < 0.92) return epic[Math.floor(Math.random()*epic.length)];
+if (r < 0.98) return legendary[Math.floor(Math.random()*legendary.length)];
+return mythic[Math.floor(Math.random()*mythic.length)];
+}
+const NPC_SETS = [
+['King Mantis','Queen Mantis','Royal Mantis','Palace Orchid Mantis','Crown Devil Mantis','Guardian Ghost Mantis','Noble Flower Mantis','Court Green Mantis'],
+['Field Green Mantis','Meadow Brown Mantis','Plains Ghost Mantis','Farmer Orchid Mantis','Harvest Flower Mantis','Ground Devil Mantis'],
+['Forest Green Mantis','Bark Brown Mantis','Moss Ghost Mantis','Timber Devil Mantis','Canopy Orchid Mantis','Root Flower Mantis'],
+['Desert Brown Mantis','Sand Devil Mantis','Dune Ghost Mantis','Sun Flower Mantis','Oasis Green Mantis'],
+['Frost Ghost Mantis','Ice Brown Mantis','Snow Orchid Mantis','Glacier Green Mantis','Winter Devil Mantis'],
+['Lava Devil Mantis','Ash Brown Mantis','Ember Flower Mantis','Magma Green Mantis','Fire Orchid Mantis'],
+['Reef Green Mantis','Coral Orchid Mantis','Tide Ghost Mantis','Shell Brown Mantis','Pearl Flower Mantis']
+];
+function makeNPC(x,z, biomeIdx) {
+const pool = NPC_SETS[biomeIdx % NPC_SETS.length];
+const name = pool[Math.floor(Math.random()*pool.length)];
+const cols = [0x2e8b57, 0x8b5a2b, 0xd46a8a, 0xa89678, 0x4a1a1a, 0xffb347];
+const g = makeMantis(cols[Math.floor(Math.random()*cols.length)], 1.0);
+const gy = getGroundHeight(x,z);
+g.position.set(x, 0.9+gy, z);
+const c = document.createElement('canvas');
+c.width = 300; c.height = 64;
+const cx = c.getContext('2d');
+cx.fillStyle = 'rgba(0,0,0,0.7)';
+cx.fillRect(0, 0, 300, 64);
+cx.fillStyle = '#ffd54f';
+cx.font = 'bold 16px monospace';
+cx.textAlign = 'center';
+cx.fillText(name, 150, 40);
+const spr = new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(c), depthTest:false}));
+spr.scale.set(4, 0.85, 1);
+spr.position.y = 2.8;
+g.add(spr);
+scene.add(g);
+return {mesh:g, x:x, z:z, type:'npc', name:name, biome:biomeIdx};
+}
+function makeCart(x,z, free) {
+const g = new THREE.Group();
+const body = new THREE.Mesh(new THREE.BoxGeometry(2.5, 1.2, 4), new THREE.MeshStandardMaterial({color:0x8b5a2b}));
+body.position.y = 1.2;
+g.add(body);
+const seat = new THREE.Mesh(new THREE.BoxGeometry(2, 0.3, 1.2), new THREE.MeshStandardMaterial({color:0x5a3e1e}));
+seat.position.set(0, 1.95, 0.5);
+g.add(seat);
+for (let sx=-1;sx<=1;sx+=2) for (let sz=-1;sz<=1;sz+=2){
+const w = new THREE.Mesh(new THREE.CylinderGeometry(0.7, 0.7, 0.25, 10), new THREE.MeshStandardMaterial({color:0x3a2510}));
+w.rotation.z = Math.PI/2;
+w.position.set(sx*1.5, 0.7, sz*1.5);
+g.add(w);
+}
+const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 3, 6), new THREE.MeshStandardMaterial({color:0x3a2510}));
+pole.rotation.z = Math.PI/2;
+pole.position.set(0, 1.5, -2.8);
+g.add(pole);
+const beetle = makeBeetle(0x8b5a2b, 1.4, false);
+beetle.position.set(0, 0, -4.5);
+beetle.rotation.y = Math.PI;
+g.add(beetle);
+const gy = getGroundHeight(x,z);
+g.position.set(x, gy, z);
+scene.add(g);
+return {mesh:g, x:x, z:z, type:'cart', forSale:!free, price:50, yaw:0};
+}
+function buildCapital(cx, cz) {
+for (let ring = 0; ring < 4; ring++) {
+const rr = 55 + ring * 40;
+const count = 12 + ring * 4;
+for (let i = 0; i < count; i++) {
+const a = (i / count) * Math.PI * 2;
+const hx = cx + Math.cos(a) * rr;
+const hz = cz + Math.sin(a) * rr;
+if (Math.sqrt(hx*hx + hz*hz) < 30) continue;
+if (inHill(hx, hz, -5)) continue;
+makeHut(hx, hz, ring);
+}
+}
+for (let i = 0; i < 30; i++) {
+const a = (i/30) * Math.PI * 2;
+const r = 30 + Math.random() * 180;
+const nx = cx + Math.cos(a) * r;
+const nz = cz + Math.sin(a) * r;
+if (inHill(nx, nz, -5)) continue;
+npcs.push(makeNPC(nx, nz, 0));
+}
+for (let i = 0; i < 20; i++) {
+const a = Math.random() * Math.PI * 2;
+const r = 30 + Math.random() * 180;
+const fx = cx + Math.cos(a) * r;
+const fz = cz + Math.sin(a) * r;
+if (inHill(fx, fz, -5)) continue;
+food.push(makeFood(fx, fz));
+}
+const freeCart = makeCart(cx + 45, cz + 45, true);
+vehicles.push(freeCart);
+chests.push(makeChest(cx + 20, cz + 20, ['House Crafter Tool', 'Thorn Scythe', 'Chitin Plate', 'Crown of Beetleon']));
+const statueGroup = new THREE.Group();
+const base = new THREE.Mesh(new THREE.CylinderGeometry(14, 18, 8, 20), new THREE.MeshStandardMaterial({color:0x886633, metalness:0.5, roughness:0.4}));
+base.position.y = 4;
+statueGroup.add(base);
+const tier2 = new THREE.Mesh(new THREE.CylinderGeometry(10, 14, 6, 20), new THREE.MeshStandardMaterial({color:0x997744, metalness:0.6, roughness:0.3}));
+tier2.position.y = 11;
+statueGroup.add(tier2);
+const hero = makeMantis('#ffd700', 5.5);
+hero.position.y = 22;
+statueGroup.add(hero);
+const glow = new THREE.PointLight(0xffd700, 8, 100);
+glow.position.y = 30;
+statueGroup.add(glow);
+statueGroup.position.set(cx, 0, cz);
+scene.add(statueGroup);
+addStatueCollider(cx, cz, 20);
+}
+function buildVillage(x, z, biomeIdx) {
+const hutCount = 4 + (biomeIdx % 2);
+for (let i = 0; i < hutCount; i++) {
+const a = (i / hutCount) * Math.PI * 2;
+const rr = 14 + (i % 2) * 6;
+const hx = x + Math.cos(a) * rr;
+const hz = z + Math.sin(a) * rr;
+if (inHill(hx, hz, -3)) continue;
+makeHut(hx, hz, biomeIdx);
+}
+for (let i = 0; i < 4; i++) {
+const a = (i/4) * Math.PI * 2;
+const nx = x + Math.cos(a) * 25;
+const nz = z + Math.sin(a) * 25;
+if (inHill(nx, nz, -3)) continue;
+npcs.push(makeNPC(nx, nz, biomeIdx));
+}
+chests.push(makeChest(x + 6, z + 6, [rollLoot(), rollLoot()]));
+const a = Math.random() * Math.PI * 2;
+vehicles.push(makeCart(x + Math.cos(a) * 35, z + Math.sin(a) * 35, false));
+}
+
+// ============ INVENTORY ============
+function openInventory() {
+invPanel.style.display = 'block';
+if (controls) controls.unlock();
+renderInventory();
+}
+function closeInventory() {
+invPanel.style.display = 'none';
+if (mouseOn && controls && gameActive) controls.lock();
+}
+function renderInventory() {
+statsPanel.innerHTML = `
+<div><span>Max HP:</span> <b>${player.maxHp}</b> ${player.maxHp > player.baseMaxHp ? '(' + (player.maxHp - player.baseMaxHp) + ' bonus)' : ''}</div>
+<div><span>Damage:</span> <b>${player.data.dmg}</b> ${player.data.dmg > player.baseDmg ? '(' + (player.data.dmg - player.baseDmg) + ' bonus)' : ''}</div>
+<div><span>HP:</span> <b>${player.hp} / ${player.maxHp}</b></div>
+<div><span>Gold:</span> <b>${player.gold}</b></div>
+`;
+const groups = { weapon: [], armor: [], helmet: [], food: [], special: [] };
+for (const [name, qty] of Object.entries(player.inv)) {
+const it = getItem(name);
+if (!groups[it.type]) groups[it.type] = [];
+groups[it.type].push({ name, qty, it });
+}
+let html = '';
+function renderGroup(title, key, buttonsFn) {
+if (!groups[key] || groups[key].length === 0) return;
+html += `<h3>${title}</h3>`;
+groups[key].forEach(({name, qty, it}) => {
+html += `<div class="inv-item ${key}"><span>${name} ×${qty}<br><small style="color:#888">${it.desc}</small></span><div>${buttonsFn(name, it)}</div></div>`;
+});
+}
+renderGroup('⚔️ Weapons', 'weapon', (name) => {
+const equipped = player.equipped.weapon === name;
+return `<button class="equip ${equipped ? 'equipped' : ''}" onclick="equipItemByName('${name}')">${equipped ? '✓ Equipped' : 'Equip'}</button>`;
+});
+renderGroup('🛡️ Armor', 'armor', (name) => {
+const equipped = player.equipped.armor === name;
+return `<button class="equip ${equipped ? 'equipped' : ''}" onclick="equipItemByName('${name}')">${equipped ? '✓ Equipped' : 'Equip'}</button>`;
+});
+renderGroup('⛑️ Helmets', 'helmet', (name) => {
+const equipped = player.equipped.helmet === name;
+return `<button class="equip ${equipped ? 'equipped' : ''}" onclick="equipItemByName('${name}')">${equipped ? '✓ Equipped' : 'Equip'}</button>`;
+});
+renderGroup('🍎 Food', 'food', (name) => `<button onclick="useInventoryItem('${name}')">Eat</button>`);
+renderGroup('✨ Special', 'special', (name) => {
+if (name === 'House Crafter Tool') return `<button onclick="useInventoryItem('${name}')">Equip Tool</button>`;
+return `<button onclick="useInventoryItem('${name}')">Sell</button>`;
+});
+if (html === '') html = '<div class="inv-empty">Empty — find loot in chests!</div>';
+invList.innerHTML = html;
+}
+window.equipItemByName = equipItem;
+window.useInventoryItem = useInventoryItem;
+function useInventoryItem(name) {
+const item = getItem(name);
+if (item.type === 'food') {
+player.hp = Math.min(player.maxHp, player.hp + (item.heal || 30));
+hpEl.style.width = (player.hp/player.maxHp*100) + '%';
+sfxLoot();
+showMsg('Ate ' + name + ' — +' + (item.heal || 30) + ' HP', 1500);
+} else if (name === 'House Crafter Tool') {
+player.tool = true;
+showMsg('House Crafter Tool equipped — press H to build', 2500);
+} else if (item.type === 'special') {
+const sell = Math.floor(item.value * 0.8);
+player.gold += sell;
+goldEl.textContent = '💰 ' + player.gold;
+sfxLoot();
+showMsg('Sold ' + name + ' for +' + sell + ' gold', 2000);
+} else {
+showMsg('Equip ' + name + ' from the top of the inventory', 2000);
+return;
+}
+player.inv[name]--;
+if (player.inv[name] <= 0) delete player.inv[name];
+invEl.textContent = '🎒 ' + Object.keys(player.inv).length;
+renderInventory();
+}
+closeInvBtn.onclick = closeInventory;
+fishCloseBtn.onclick = () => {
+fishing.active = false;
+fishUI.style.display = 'none';
+if (mouseOn && controls && gameActive) controls.lock();
+};
+
+// ============ INPUT ============
+document.addEventListener('keydown', e => {
+if (cutsceneActive) return;
+if (e.code === 'KeyW') keys.w = 1;
+if (e.code === 'KeyA') keys.a = 1;
+if (e.code === 'KeyS') keys.s = 1;
+if (e.code === 'KeyD') keys.d = 1;
+if (e.code === 'Space') { keys.space = 1; e.preventDefault(); }
+if (e.code === 'KeyE') keys.e = 1;
+if (e.code === 'KeyF') keys.f = 1;
+if (e.code === 'KeyI') keys.i = 1;
+if (e.code === 'KeyH') { keys.h = 1; onHKey(); e.preventDefault(); }
+if (e.code === 'KeyX') { keys.x = 1; onXKey(); e.preventDefault(); }
+if (e.code === 'KeyM') {
+mouseOn = !mouseOn;
+if (mouseOn && controls && gameActive) controls.lock(); else if (controls) controls.unlock();
+showMsg(mouseOn ? 'Mouse ON' : 'Mouse OFF', 1500);
+}
+if (e.code === 'Escape') { closeInventory(); onXKey(); }
+});
+document.addEventListener('keyup', e => {
+if (e.code === 'KeyW') keys.w = 0;
+if (e.code === 'KeyA') keys.a = 0;
+if (e.code === 'KeyS') keys.s = 0;
+if (e.code === 'KeyD') keys.d = 0;
+if (e.code === 'Space') keys.space = 0;
+if (e.code === 'KeyE') keys.e = 0;
+if (e.code === 'KeyF') keys.f = 0;
+if (e.code === 'KeyI') keys.i = 0;
+if (e.code === 'KeyH') keys.h = 0;
+if (e.code === 'KeyX') keys.x = 0;
+});
+
+// ============ BUILD / DELETE ============
+function onHKey() {
+if (buildMode !== 'none') { cancelBuildMode(); return; }
+if (!player.tool) { showMsg('Need a House Crafter Tool first!', 2500); return; }
+const house = findNearestPlayerHouse();
+if (house) { deleteHouse(house); return; }
+enterPlaceMode();
+}
+function onXKey() {
+if (buildMode !== 'none') cancelBuildMode();
+}
+function enterPlaceMode() {
+buildMode = 'place';
+if (controls) controls.unlock();
+buildHint.style.display = 'block';
+ghostHut = buildHutMesh(0, true);
+ghostHut.position.set(0, 0, 0);
+scene.add(ghostHut);
+showMsg('Click to place your hut. X to cancel.', 2500);
+}
+function cancelBuildMode() {
+buildMode = 'none';
+buildHint.style.display = 'none';
+deleteHint.style.display = 'none';
+if (ghostHut) { scene.remove(ghostHut); ghostHut = null; }
+if (mouseOn && controls && gameActive) controls.lock();
+}
+function updateGhostPosition() {
+if (buildMode !== 'place' || !ghostHut) return;
+const origin = camera.position.clone();
+const dir = new THREE.Vector3();
+camera.getWorldDirection(dir);
+const t = (0.9 - origin.y) / dir.y;
+if (t > 0 && t < 500) {
+const px = origin.x + dir.x * t;
+const pz = origin.z + dir.z * t;
+const gy = getGroundHeight(px, pz);
+ghostHut.position.set(px, gy, pz);
+}
+}
+function placeHutAtGhost() {
+if (!ghostHut) return;
+const x = ghostHut.position.x;
+const z = ghostHut.position.z;
+const gy = getGroundHeight(x, z);
+scene.remove(ghostHut);
+ghostHut = null;
+const realHut = buildHutMesh(0, false);
+realHut.position.set(x, gy, z);
+scene.add(realHut);
+const tagSprite = makeHouseTag();
+tagSprite.position.set(0, 6.5, 0);
+realHut.add(tagSprite);
+const house = { mesh: realHut, x: x, z: z, tag: tagSprite, buildTime: Date.now() };
+playerHouses.push(house);
+chests.push({mesh:realHut, x:x, z:z, type:'bed', insideHut:true, playerHouse: true});
+food.push({mesh:realHut, x:x, z:z, type:'food', insideHut:true, playerHouse: true});
+sfxBuild();
+showMsg('Hut placed! Press H nearby to delete it.', 3000);
+buildMode = 'none';
+buildHint.style.display = 'none';
+if (mouseOn && controls && gameActive) controls.lock();
+}
+function makeHouseTag() {
+const c = document.createElement('canvas');
+c.width = 512; c.height = 128;
+const cx = c.getContext('2d');
+cx.fillStyle = 'rgba(0,0,0,0.75)';
+cx.beginPath();
+if (cx.roundRect) cx.roundRect(0, 0, 512, 128, 40); else cx.rect(0, 0, 512, 128);
+cx.fill();
+cx.strokeStyle = '#ffd700';
+cx.lineWidth = 8;
+cx.beginPath();
+if (cx.roundRect) cx.roundRect(6, 6, 500, 116, 36); else cx.rect(6, 6, 500, 116);
+cx.stroke();
+cx.fillStyle = '#ffd700';
+cx.font = 'bold 60px Georgia, serif';
+cx.textAlign = 'center';
+cx.textBaseline = 'middle';
+cx.fillText('🏠 YOUR HOUSE', 256, 64);
+const tex = new THREE.CanvasTexture(c);
+const sprMat = new THREE.SpriteMaterial({map:tex, depthTest:false});
+const spr = new THREE.Sprite(sprMat);
+spr.scale.set(6, 1.5, 1);
+return spr;
+}
+function findNearestPlayerHouse() {
+const pp = player.mesh.position;
+let nearest = null, nd = 6;
+for (const h of playerHouses) {
+const d = Math.hypot(h.x - pp.x, h.z - pp.z);
+if (d < nd) { nd = d; nearest = h; }
+}
+return nearest;
+}
+function deleteHouse(house) {
+scene.remove(house.mesh);
+chests = chests.filter(c => c.mesh !== house.mesh);
+food = food.filter(f => f.mesh !== house.mesh);
+playerHouses = playerHouses.filter(h => h !== house);
+sfxDelete();
+showMsg('House deleted! Press H to build again.', 2500);
+}
+
+// ============ FISHING ============
+function startFishing() {
+fishing.active = true;
+fishing.marker = 0;
+fishing.dir = 1;
+fishing.speed = 0.012 + Math.random() * 0.008;
+fishing.zoneStart = 0.3 + Math.random() * 0.4;
+fishing.zoneEnd = fishing.zoneStart + 0.12 + Math.random() * 0.08;
+fishZone.style.left = (fishing.zoneStart * 100) + '%';
+fishZone.style.width = ((fishing.zoneEnd - fishing.zoneStart) * 100) + '%';
+fishUI.style.display = 'block';
+fishStatus.textContent = 'Press SPACE when the marker is in the green zone!';
+if (controls) controls.unlock();
+}
+function attemptFish() {
+if (!fishing.active) return;
+const inZone = fishing.marker >= fishing.zoneStart && fishing.marker <= fishing.zoneEnd;
+if (inZone) {
+const goldReward = 15 + Math.floor(Math.random() * 25);
+player.gold += goldReward;
+goldEl.textContent = '💰 ' + player.gold;
+player.inv['Fish'] = (player.inv['Fish']||0) + 1;
+invEl.textContent = '🎒 ' + Object.keys(player.inv).length;
+sfxLoot();
+fishStatus.textContent = '🐟 Caught a fish! +' + goldReward + ' gold';
+} else {
+fishStatus.textContent = '❌ Missed!';
+}
+setTimeout(function() {
+fishing.marker = 0;
+fishing.dir = 1;
+fishing.zoneStart = 0.3 + Math.random() * 0.4;
+fishing.zoneEnd = fishing.zoneStart + 0.12 + Math.random() * 0.08;
+fishZone.style.left = (fishing.zoneStart * 100) + '%';
+fishZone.style.width = ((fishing.zoneEnd - fishing.zoneStart) * 100) + '%';
+fishStatus.textContent = 'Press SPACE when the marker is in the green zone!';
+}, 900);
+}
+function updateFishing(dt) {
+if (!fishing.active) return;
+fishing.marker += fishing.dir * fishing.speed;
+if (fishing.marker >= 1) { fishing.marker = 1; fishing.dir = -1; }
+if (fishing.marker <= 0) { fishing.marker = 0; fishing.dir = 1; }
+fishMarker.style.left = (fishing.marker * 100) + '%';
+}
+
+// ============ BOAT TRAVEL ============
+function sailToIsland() {
+sfxBoat();
+startCutscene([
+{ char: '⛵', speaker: '', text: 'You step onto the tiny boat and push off from the shore.' },
+{ char: '🌊', speaker: '', text: 'The ocean stretches for miles. Waves rock the boat gently.' },
+{ char: '🏝️', speaker: '', text: 'After what feels like hours, an island appears on the horizon...' },
+{ char: '🕷️', speaker: '', text: 'You can already see something moving in the sand.', shake: true }
+], function() {
+onIsland = true;
+player.mesh.position.set(islandOrigin.x, 1.5, islandOrigin.z + 50);
+if (controls) controls.getObject().position.set(islandOrigin.x, 2.5, islandOrigin.z + 50);
+if (camelSpiders.length === 0) spawnCamelSpiders();
+scene.background = new THREE.Color(0xaaddff);
+scene.fog = new THREE.Fog(0xaaddff, 80, 400);
+themeIsland();
+themeEl.textContent = '🏝️ CAMEL SPIDER ISLAND';
+if (mouseOn && controls && gameActive) controls.lock();
+showMsg('Welcome to Camel Spider Island!', 4000);
+});
+}
+function sailHome() {
+sfxBoat();
+startCutscene([
+{ char: '⛵', speaker: '', text: 'You push the boat back into the ocean.' },
+{ char: '🌊', speaker: '', text: 'The island fades behind you as you row home.' },
+{ char: '🏘️', speaker: '', text: 'The familiar shores of the mainland appear.' }
+], function() {
+onIsland = false;
+player.mesh.position.set(CFG.BOAT_X + 10, 0.9, CFG.BOAT_Z + 10);
+if (controls) controls.getObject().position.set(CFG.BOAT_X + 10, 2.5, CFG.BOAT_Z + 10);
+scene.background = new THREE.Color(0xcceeFF);
+scene.fog = new THREE.Fog(0xcceeFF, 150, 700);
+themeCapital();
+themeEl.textContent = '🏘️ VILLAGE';
+if (mouseOn && controls && gameActive) controls.lock();
+showMsg('Welcome back to the mainland!', 3000);
+});
+}
+
+// ============ THIRD PERSON CAMERA ============
+function updateCameraPosition() {
+if (!player.mesh) return;
+const p = player.mesh.position;
+const dist = ridingCart ? CFG.CAM_DISTANCE + 4 : CFG.CAM_DISTANCE;
+const height = ridingCart ? CFG.CAM_HEIGHT + 2 : CFG.CAM_HEIGHT;
+const camX = p.x + Math.sin(camYaw) * dist;
+const camZ = p.z + Math.cos(camYaw) * dist;
+const camY = p.y + height + Math.sin(camPitch) * 3;
+camera.position.set(camX, camY, camZ);
+camera.lookAt(p.x, p.y + CFG.CAM_LOOK_HEIGHT, p.z);
+}
+
+// ============ PLAYER ============
+function updatePlayer(dt) {
+if (!player.alive || gameWon || cutsceneActive) return;
+
+if (fishing.active) {
+if (keys.space) { keys.space = 0; attemptFish(); }
+updateFishing(dt);
+return;
+}
+
+if (ridingCart) {
+const cart = ridingCart;
+const sp = CFG.CART_SPEED * dt * 60;
+if (keys.a) cart.yaw += CFG.CART_TURN;
+if (keys.d) cart.yaw -= CFG.CART_TURN;
+const fwdX = -Math.sin(cart.yaw);
+const fwdZ = -Math.cos(cart.yaw);
+if (keys.w) { cart.mesh.position.x += fwdX * sp; cart.mesh.position.z += fwdZ * sp; }
+if (keys.s) { cart.mesh.position.x -= fwdX * sp; cart.mesh.position.z -= fwdZ * sp; }
+cart.mesh.rotation.y = cart.yaw;
+const gy = getGroundHeight(cart.mesh.position.x, cart.mesh.position.z);
+cart.mesh.position.y = gy;
+player.mesh.visible = true;
+player.mesh.position.set(cart.mesh.position.x, gy + 2.4, cart.mesh.position.z);
+player.mesh.rotation.y = cart.yaw;
+if (keys.e) { keys.e = 0; dismountCart(); }
+updateCameraPosition();
+return;
+}
+
+if (buildMode === 'place') {
+updateGhostPosition();
+updateCameraPosition();
+return;
+}
+
+player.mesh.visible = true;
+const pp = player.mesh.position;
+const sp = player.data.speed * dt * 60;
+const fwdX = -Math.sin(camYaw);
+const fwdZ = -Math.cos(camYaw);
+const rgtX = Math.cos(camYaw);
+const rgtZ = -Math.sin(camYaw);
+
+const oldX = pp.x;
+const oldZ = pp.z;
+let newX = oldX, newZ = oldZ;
+if (keys.w) { newX += fwdX*sp; newZ += fwdZ*sp; }
+if (keys.s) { newX -= fwdX*sp; newZ -= fwdZ*sp; }
+if (keys.a) { newX -= rgtX*sp; newZ -= rgtZ*sp; }
+if (keys.d) { newX += rgtX*sp; newZ += rgtZ*sp; }
+
+if (!collides(newX, newZ, 1.5)) {
+pp.x = newX; pp.z = newZ;
+} else {
+if (!collides(newX, oldZ, 1.5)) pp.x = newX;
+else if (!collides(oldX, newZ, 1.5)) pp.z = newZ;
+}
+
+if (inDimension) {
+const dist = Math.hypot(pp.x - dimensionOrigin.x, pp.z - dimensionOrigin.z);
+if (dist > CFG.DIMENSION_R - 10) {
+const a = Math.atan2(pp.z - dimensionOrigin.z, pp.x - dimensionOrigin.x);
+pp.x = dimensionOrigin.x + Math.cos(a) * (CFG.DIMENSION_R - 10);
+pp.z = dimensionOrigin.z + Math.sin(a) * (CFG.DIMENSION_R - 10);
+}
+} else if (onIsland) {
+const dist = Math.hypot(pp.x - islandOrigin.x, pp.z - islandOrigin.z);
+if (dist > CFG.ISLAND_RADIUS - 5) {
+const a = Math.atan2(pp.z - islandOrigin.z, pp.x - islandOrigin.x);
+pp.x = islandOrigin.x + Math.cos(a) * (CFG.ISLAND_RADIUS - 5);
+pp.z = islandOrigin.z + Math.sin(a) * (CFG.ISLAND_RADIUS - 5);
+}
+} else {
+const distFromCenter = Math.hypot(pp.x, pp.z);
+if (distFromCenter > CFG.MOUNTAIN_INNER - 10) {
+const a = Math.atan2(pp.z, pp.x);
+pp.x = Math.cos(a) * (CFG.MOUNTAIN_INNER - 10);
+pp.z = Math.sin(a) * (CFG.MOUNTAIN_INNER - 10);
+}
+}
+const gy = getGroundHeight(pp.x, pp.z);
+pp.y = gy + 0.9;
+player.mesh.rotation.y = camYaw + Math.PI;
+
+if (player.cd > 0) player.cd--;
+if (keys.space && player.cd <= 0) { attack(); player.cd = CFG.ATTACK_CD; }
+if (keys.e) { keys.e = 0; interact(); }
+if (keys.f) { keys.f = 0; useNearby(); }
+if (keys.i) { keys.i = 0; openInventory(); }
+updateCameraPosition();
+updateTheme();
+updatePrompt();
+updateBossTriggers(dt);
+}
+
+// ============ BOSS TRIGGERS ============
+function updateBossTriggers(dt) {
+const pp = player.mesh.position;
+
+if (spiderBoss && !spiderBoss.active && !onIsland) {
+const d = Math.hypot(pp.x - spiderBoss.x, pp.z - spiderBoss.z);
+if (d < spiderBoss.triggerRadius && !spiderArenaCutsceneShown) {
+spiderArenaCutsceneShown = true;
+themeSpiderBoss();
+startCutscene([
+{ char: '🌲', speaker: '', text: 'The trees part into a wide, silent clearing.', bg: 'radial-gradient(circle, #0a1a0a, #000)' },
+{ char: '🕸️', speaker: '', text: 'Thick webs cover every branch. Something enormous stirs.', bg: 'radial-gradient(circle, #0a1a0a, #000)' },
+{ char: '🕷️', speaker: 'ARACHNE THE WEB TYRANT', text: 'You dare enter MY clearing, little mantis?', bg: 'radial-gradient(circle, #1a0a0a, #000)', shake: true },
+{ char: '🕷️', speaker: 'ARACHNE THE WEB TYRANT', text: 'I have devoured a thousand of your kind. You will be no different.', bg: 'radial-gradient(circle, #1a0a0a, #000)', shake: true }
+], function() {
+spiderBoss.active = true;
+currentBoss = spiderBoss;
+bossNameEl.textContent = '⚔️ ' + spiderBoss.name.toUpperCase() + ' ⚔️';
+bossHpEl.style.display = 'block';
+bossHpInner.style.width = '100%';
+if (mouseOn && controls && gameActive) controls.lock();
+});
+}
+}
+
+if (centipedeBoss && !centipedeBoss.active && !onIsland) {
+const d = Math.hypot(pp.x - centipedeBoss.x, pp.z - centipedeBoss.z);
+if (d < 60 && !centipedeArenaCutsceneShown) {
+centipedeArenaCutsceneShown = true;
+themeCentipedeBoss();
+startCutscene([
+{ char: '🏔️', speaker: '', text: 'A monstrous mountain rises from the desert sands.', bg: 'radial-gradient(circle, #4a3a1a, #000)' },
+{ char: '💨', speaker: '', text: 'The wind howls. Sand swirls around you, stinging your eyes.', bg: 'radial-gradient(circle, #4a3a1a, #000)' },
+{ char: '🐛', speaker: 'SCOLOPENDRA THE SANDSTORM', text: 'From the peak... YOU DARE?', bg: 'radial-gradient(circle, #3a1a0a, #000)', shake: true },
+{ char: '🐛', speaker: 'SCOLOPENDRA THE SANDSTORM', text: 'I AM THE MOUNTAIN. I AM THE STORM. DIE!', bg: 'radial-gradient(circle, #3a1a0a, #000)', shake: true, flash: true }
+], function() {
+centipedeBoss.active = true;
+currentBoss = centipedeBoss;
+bossNameEl.textContent = '⚔️ ' + centipedeBoss.name.toUpperCase() + ' ⚔️';
+bossHpEl.style.display = 'block';
+bossHpInner.style.width = '100%';
+sandstorm.active = true;
+if (mouseOn && controls && gameActive) controls.lock();
+});
+}
+}
+
+if (camelKingBoss && !camelKingBoss.active && onIsland) {
+const d = Math.hypot(pp.x - camelKingBoss.x, pp.z - camelKingBoss.z);
+if (d < camelKingBoss.triggerRadius && !camelKingCutsceneShown) {
+camelKingCutsceneShown = true;
+themeCamelKing();
+startCutscene([
+{ char: '🏝️', speaker: '', text: 'You reach the heart of the island. The sand shifts beneath you.', bg: 'radial-gradient(circle, #d4a760, #000)' },
+{ char: '🕷️', speaker: 'THE CAMEL SPIDER KING', text: 'You have slain my children.', bg: 'radial-gradient(circle, #8a5a2a, #000)' },
+{ char: '🕷️', speaker: 'THE CAMEL SPIDER KING', text: 'I am the last of the Desert Kings. I am the KING OF THE SANDS.', bg: 'radial-gradient(circle, #8a5a2a, #000)', shake: true },
+{ char: '🕷️', speaker: 'THE CAMEL SPIDER KING', text: 'COME. YOUR BLOOD WILL WATER MY ISLAND.', bg: 'radial-gradient(circle, #4a2a0a, #000)', shake: true, flash: true }
+], function() {
+camelKingBoss.active = true;
+currentBoss = camelKingBoss;
+bossNameEl.textContent = '⚔️ ' + camelKingBoss.name.toUpperCase() + ' ⚔️';
+bossHpEl.style.display = 'block';
+bossHpInner.style.width = '100%';
+if (mouseOn && controls && gameActive) controls.lock();
+});
+}
+}
+
+if (!inDimension && !finalBoss && !gameWon && spiderBossDefeated && centipedeBossDefeated) {
+const distToCapital = Math.hypot(pp.x, pp.z);
+if (distToCapital < 100 && !cutsceneActive && !dimensionCutsceneShown && !onIsland) {
+dimensionCutsceneShown = true;
+themeDimension();
+startCutscene([
+{ char:'🦗', speaker:'', text:'You return to the capital, victorious... but something is wrong.', bg:'radial-gradient(circle, #4a0a5a, #000)' },
+{ char:'👑', speaker:'A VOICE FROM THE VOID', text:'You... yes, YOU. You have slain my servants.', bg:'radial-gradient(circle, #4a0a5a, #000)' },
+{ char:'🦗', speaker:'A VOICE FROM THE VOID', text:'You have finally found me... or rather, I have found YOU.', bg:'radial-gradient(circle, #4a0a5a, #000)', shake:true },
+{ char:'⚔️', speaker:'', text:'The ground beneath you crumbles. Reality tears open.', bg:'radial-gradient(circle, #6a0a7a, #000)', shake:true, flash:true },
+{ char:'👑', speaker:'A VOICE FROM THE VOID', text:'COME TO ME, LITTLE MANTIS. LET US SETTLE THIS IN MY DOMAIN.', bg:'radial-gradient(circle, #4a0a5a, #000)', shake:true },
+{ char:'', speaker:'', text:'You are pulled into the void...', bg:'radial-gradient(circle, #2a0a3a, #000)' }
+], function() {
+enterDimension();
+});
+}
+}
+}
+
+function enterDimension() {
+inDimension = true;
+player.mesh.position.set(dimensionOrigin.x, 0.9, dimensionOrigin.z);
+scene.background = new THREE.Color(0x1a0a2a);
+scene.fog = new THREE.Fog(0x2a0a4a, 30, 200);
+themeEl.textContent = '👁️ THE VOID';
+spawnFinalBossInDimension();
+showMsg('You have entered the True Lord\'s dimension.', 4000);
+}
+
+// ============ BOSS AI ============
+function updateSpiderBoss(dt) {
+if (!spiderBoss || !spiderBoss.active) return;
+const pp = player.mesh.position;
+const bp = spiderBoss.mesh.position;
+const dx = pp.x - bp.x;
+const dz = pp.z - bp.z;
+const dTP = Math.hypot(dx, dz);
+if (dTP > 3) {
+const a = Math.atan2(dx, dz);
+const s = 0.10 * dt * 60;
+bp.x += Math.sin(a) * s;
+bp.z += Math.cos(a) * s;
+bp.y = getGroundHeight(bp.x, bp.z) + 0.9;
+spiderBoss.mesh.rotation.y = a;
+}
+if (dTP < 3.5 && player.cd <= 0) {
+player.hp -= 15;
+hpEl.style.width = Math.max(0, player.hp/player.maxHp*100) + '%';
+sfxHit();
+player.cd = 30;
+if (player.hp <= 0) { player.alive = false; gameActive = false; stopTheme(); showMsg('You died! Click Restart.', 10000); }
+}
+}
+function updateCentipedeBoss(dt) {
+if (!centipedeBoss || !centipedeBoss.active) return;
+const pp = player.mesh.position;
+const c = centipedeBoss;
+const cp = c.mesh.position;
+const dx = pp.x - cp.x;
+const dz = pp.z - cp.z;
+const dTP = Math.hypot(dx, dz);
+c.chargeCd = (c.chargeCd || 0) - 1;
+if (c.charging) {
+c.chargeTimer--;
+cp.x += c.chargeDir.x * 0.6 * dt * 60 / 10;
+cp.z += c.chargeDir.z * 0.6 * dt * 60 / 10;
+if (c.onMountain) cp.y = 118;
+if (Math.hypot(cp.x - pp.x, cp.z - pp.z) < 4) {
+player.hp -= 25;
+hpEl.style.width = Math.max(0, player.hp/player.maxHp*100) + '%';
+sfxHit();
+if (player.hp <= 0) { player.alive = false; gameActive = false; stopTheme(); showMsg('You died! Click Restart.', 10000); }
+}
+if (c.chargeTimer <= 0) { c.charging = false; c.chargeCd = 180; }
+} else if (dTP < 40 && c.chargeCd <= 0) {
+c.charging = true;
+c.chargeTimer = 90;
+c.chargeDir = new THREE.Vector3(dx, 0, dz).normalize();
+showMsg('⚠️ ' + c.name + ' is charging!', 2000);
+} else {
+if (dTP > 4) {
+const a = Math.atan2(dx, dz);
+const s = 0.06 * dt * 60;
+cp.x += Math.sin(a) * s;
+cp.z += Math.cos(a) * s;
+if (c.onMountain) cp.y = 118;
+c.mesh.rotation.y = a;
+}
+}
+if (dTP < 3.5 && player.cd <= 0) {
+player.hp -= 10;
+hpEl.style.width = Math.max(0, player.hp/player.maxHp*100) + '%';
+sfxHit();
+player.cd = 30;
+if (player.hp <= 0) { player.alive = false; gameActive = false; stopTheme(); showMsg('You died! Click Restart.', 10000); }
+}
+if (sandstorm.active) {
+sandstorm.intensity = Math.min(1, sandstorm.intensity + 0.005);
+if (dTP < 100) {
+scene.fog = new THREE.Fog(0xd4a760, 20 - sandstorm.intensity * 10, 150 - sandstorm.intensity * 80);
+scene.background = new THREE.Color(0xd4a760);
+}
+}
+}
+function updateCamelKing(dt) {
+if (!camelKingBoss || !camelKingBoss.active) return;
+const pp = player.mesh.position;
+const b = camelKingBoss;
+const bp = b.mesh.position;
+const dx = pp.x - bp.x;
+const dz = pp.z - bp.z;
+const dTP = Math.hypot(dx, dz);
+if (dTP > 4) {
+const a = Math.atan2(dx, dz);
+const s = 0.12 * dt * 60;
+bp.x += Math.sin(a) * s;
+bp.z += Math.cos(a) * s;
+b.mesh.rotation.y = a;
+}
+if (dTP < 4 && player.cd <= 0) {
+player.hp -= 22;
+hpEl.style.width = Math.max(0, player.hp/player.maxHp*100) + '%';
+sfxHit();
+player.cd = 28;
+if (player.hp <= 0) { player.alive = false; gameActive = false; stopTheme(); showMsg('You died! Click Restart.', 10000); }
+}
+}
+function updateCamelSpiders(dt) {
+if (!onIsland) return;
+const pp = player.mesh.position;
+for (let i = camelSpiders.length - 1; i >= 0; i--) {
+const s = camelSpiders[i];
+if (!s.mesh || s.hp <= 0) { scene.remove(s.mesh); camelSpiders.splice(i,1); continue; }
+const ep = s.mesh.position;
+const dx = pp.x - ep.x;
+const dz = pp.z - ep.z;
+const dTP = Math.hypot(dx, dz);
+if (dTP < 30) {
+const a = Math.atan2(dx, dz);
+const sp = s.speed * dt * 60;
+ep.x += Math.sin(a) * sp;
+ep.z += Math.cos(a) * sp;
+s.mesh.rotation.y = a;
+}
+if (dTP < 2.5 && s.cd <= 0) {
+player.hp -= 6;
+hpEl.style.width = Math.max(0, player.hp/player.maxHp*100) + '%';
+sfxHit();
+s.cd = 45;
+if (player.hp <= 0) { player.alive = false; gameActive = false; stopTheme(); showMsg('You died! Click Restart.', 10000); }
+}
+if (s.cd > 0) s.cd--;
+}
+}
+function updateFinalBoss(dt) {
+if (!finalBoss || !finalBoss.active || !finalBoss.mesh) return;
+const pp = player.mesh.position;
+const b = finalBoss;
+const bp = b.mesh.position;
+const dx = pp.x - bp.x;
+const dz = pp.z - bp.z;
+const dTP = Math.hypot(dx, dz);
+if (b.aura) b.aura.intensity = 3 + Math.sin(Date.now() * 0.005) * 2;
+if (dTP > 6) {
+const a = Math.atan2(dx, dz);
+const s = 0.08 * dt * 60;
+bp.x += Math.sin(a) * s;
+bp.z += Math.cos(a) * s;
+bp.y = 0.9;
+b.mesh.rotation.y = a;
+}
+if (dTP < 5 && player.cd <= 0) {
+player.hp -= 20;
+hpEl.style.width = Math.max(0, player.hp/player.maxHp*100) + '%';
+sfxHit();
+player.cd = 25;
+if (player.hp <= 0) { player.alive = false; gameActive = false; stopTheme(); showMsg('You died! Click Restart.', 10000); }
+}
+}
+
+function mountCart(cart) {
+ridingCart = cart;
+cart.yaw = cart.mesh.rotation.y || 0;
+ridingEl.style.display = 'block';
+showMsg('Riding Beetle Cart! A/D turn, W/S drive, E dismount', 3500);
+}
+function dismountCart() {
+if (!ridingCart) return;
+const cart = ridingCart;
+ridingCart = null;
+let px = cart.mesh.position.x + 6;
+let pz = cart.mesh.position.z + 6;
+if (collides(px, pz, 1.5)) { px = cart.mesh.position.x - 6; pz = cart.mesh.position.z - 6; }
+const gy = getGroundHeight(px, pz);
+player.mesh.position.set(px, gy + 0.9, pz);
+ridingEl.style.display = 'none';
+showMsg('Dismounted', 1500);
+}
+
+function updateTheme() {
+if (currentBoss && currentBoss.active) return;
+if (inDimension) return;
+if (onIsland) return;
+if (sandstorm.active && sandstorm.intensity > 0.3) return;
+
+const p = player.mesh.position;
+const d = Math.hypot(p.x, p.z);
+nearLake = Math.hypot(p.x - CFG.LAKE_X, p.z - CFG.LAKE_Z) < CFG.LAKE_R + 25;
+nearBoat = Math.hypot(p.x - CFG.BOAT_X, p.z - CFG.BOAT_Z) < 15;
+
+let newTheme = 'capital';
+for (let i = 1; i < BIOMES.length; i++) {
+if (d >= BIOMES[i].rIn && d < BIOMES[i].rOut) { newTheme = BIOMES[i].theme; break; }
+}
+if (nearLake) newTheme = 'lake';
+if (newTheme !== currentBiomeTheme) {
+currentBiomeTheme = newTheme;
+const themes = {
+capital: { fog:0xcceeFF, bg:0xcceeFF, label:'MANTIS CAPITAL', fn:themeCapital, near:150, far:700 },
+village: { fog:0x87ceeb, bg:0x87ceeb, label:'VILLAGE PLAINS', fn:themeVillage, near:150, far:700 },
+forest: { fog:0x0a0a12, bg:0x0a0a12, label:'DARK FOREST', fn:themeForest, near:60, far:250 },
+desert: { fog:0xe8c47a, bg:0xe8c47a, label:'DESERT', fn:themeDesert, near:60, far:250 },
+tundra: { fog:0xaaccee, bg:0xaaccee, label:'TUNDRA', fn:themeTundra, near:60, far:250 },
+volcano: { fog:0x2a0505, bg:0x2a0505, label:'VOLCANO', fn:themeVolcano, near:60, far:250 },
+coral: { fog:0x4466aa, bg:0x4466aa, label:'CORAL REEF', fn:themeCoral, near:60, far:250 },
+lake: { fog:0xaaddff, bg:0xaaddff, label:'LAKE', fn:themeLake, near:100, far:500 }
+};
+const t = themes[newTheme] || themes.village;
+scene.background = new THREE.Color(t.bg);
+scene.fog = new THREE.Fog(t.fog, t.near, t.far);
+themeEl.textContent = t.label;
+t.fn();
+}
+}
+
+function updatePrompt() {
+const pp = player.mesh.position;
+let text = '';
+let nearest = Infinity;
+
+const house = findNearestPlayerHouse();
+if (house) { text = 'Press H — Delete your house'; nearest = 0.5; }
+
+if (buildMode === 'place') { promptEl.textContent = 'Click to place your hut'; promptEl.style.display = 'block'; return; }
+
+if (nearBoat && !onIsland && !ridingCart) {
+text = 'Press E — Sail to the Camel Spider Island'; nearest = 0.3;
+}
+if (nearBoat && onIsland && !ridingCart) {
+text = 'Press E — Sail back to the mainland'; nearest = 0.3;
+}
+
+if (nearLake && !ridingCart && !fishing.active && !onIsland) {
+const d = Math.hypot(pp.x - CFG.LAKE_X, pp.z - CFG.LAKE_Z);
+if (d < CFG.LAKE_R + 15 && 1 < nearest) { text = 'Press E — Fish in the lake'; nearest = 1; }
+}
+
+for (const n of npcs) {
+const d = Math.hypot(n.mesh.position.x - pp.x, n.mesh.position.z - pp.z);
+if (d < CFG.INTERACT && d < nearest) { nearest = d; text = 'Press E — Talk to ' + n.name; }
+}
+for (const c of chests) {
+if (c.type === 'chest' && Math.hypot(c.mesh.position.x - pp.x, c.mesh.position.z - pp.z) < CFG.INTERACT && 2 < nearest) {
+nearest = 2; text = 'Press E — Open Chest';
+}
+if (c.type === 'bed' && c.insideHut && Math.hypot(c.mesh.position.x - pp.x, c.mesh.position.z - pp.z) < CFG.INTERACT && 2 < nearest) {
+nearest = 2; text = 'Press E — Sleep in Bed';
+}
+}
+for (const f of food) {
+if (f.insideHut) continue;
+const d = Math.hypot(f.mesh.position.x - pp.x, f.mesh.position.z - pp.z);
+if (d < CFG.INTERACT && d < nearest) { nearest = d; text = 'Press F — Eat Food'; }
+}
+for (const v of vehicles) {
+const d = Math.hypot(v.mesh.position.x - pp.x, v.mesh.position.z - pp.z);
+if (d < CFG.INTERACT && 2 < nearest && !onIsland) {
+if (v.forSale) { nearest = 2; text = 'Press E — Buy Beetle Cart (50g)'; }
+else { nearest = 2; text = 'Press E — Ride Beetle Cart'; }
+}
+}
+if (text) { promptEl.textContent = text; promptEl.style.display = 'block'; }
+else promptEl.style.display = 'none';
+}
+
+function attack() {
+sfxAttack();
+const pp = player.mesh.position;
+const fwd = new THREE.Vector3();
+camera.getWorldDirection(fwd);
+fwd.y = 0; fwd.normalize();
+for (let i=enemies.length-1;i>=0;i--){
+const e = enemies[i];
+const dx = e.mesh.position.x - pp.x;
+const dz = e.mesh.position.z - pp.z;
+if (Math.hypot(dx, dz) < CFG.ATTACK_RANGE) {
+const dot = fwd.dot(new THREE.Vector3(dx,0,dz).normalize());
+if (dot > 0.2) {
+e.hp -= player.data.dmg;
+sfxHit();
+if (e.hp <= 0) {
+scene.remove(e.mesh);
+enemies.splice(i, 1);
+player.kills++;
+killsEl.textContent = player.kills;
+if (Math.random() < 0.30) {
+const drop = rollLoot();
+player.inv[drop] = (player.inv[drop]||0)+1;
+invEl.textContent = '🎒 ' + Object.keys(player.inv).length;
+showMsg('💎 Loot drop: ' + drop, 2000);
+}
+if (Math.random() < 0.5) { player.gold += 3 + Math.floor(Math.random()*5); goldEl.textContent = '💰 ' + player.gold; }
+}
+}
+}
+}
+for (let i=camelSpiders.length-1;i>=0;i--){
+const s = camelSpiders[i];
+const dx = s.mesh.position.x - pp.x;
+const dz = s.mesh.position.z - pp.z;
+if (Math.hypot(dx, dz) < CFG.ATTACK_RANGE) {
+const dot = fwd.dot(new THREE.Vector3(dx,0,dz).normalize());
+if (dot > 0.2) {
+s.hp -= player.data.dmg;
+sfxHit();
+if (s.hp <= 0) {
+scene.remove(s.mesh);
+camelSpiders.splice(i, 1);
+player.kills++;
+killsEl.textContent = player.kills;
+if (Math.random() < 0.5) {
+player.inv['Camel Spider Egg'] = (player.inv['Camel Spider Egg']||0)+1;
+invEl.textContent = '🎒 ' + Object.keys(player.inv).length;
+showMsg('💎 Loot: Camel Spider Egg', 2000);
+}
+}
+}
+}
+}
+const allBosses = [spiderBoss, centipedeBoss, camelKingBoss, finalBoss].filter(b => b && b.active && b.mesh);
+for (const b of allBosses) {
+const dx = b.mesh.position.x - pp.x;
+const dz = b.mesh.position.z - pp.z;
+if (Math.hypot(dx, dz) < CFG.ATTACK_RANGE + 10) {
+const dot = fwd.dot(new THREE.Vector3(dx,0,dz).normalize());
+if (dot > 0.1) {
+b.hp -= player.data.dmg;
+sfxHit();
+if (b === currentBoss) bossHpInner.style.width = Math.max(0, b.hp / b.maxHp * 100) + '%';
+if (b.hp <= 0) {
+scene.remove(b.mesh);
+if (b === spiderBoss) {
+spiderBoss = null;
+spiderBossDefeated = true;
+player.inv['Dragon Scale'] = (player.inv['Dragon Scale']||0)+1;
+player.inv['Spider Silk'] = (player.inv['Spider Silk']||0)+1;
+invEl.textContent = '🎒 ' + Object.keys(player.inv).length;
+showMsg('💀 Arachne defeated! Drops Dragon Scale + Spider Silk.', 6000);
+}
+if (b === centipedeBoss) {
+centipedeBoss = null;
+centipedeBossDefeated = true;
+sandstorm.active = false;
+sandstorm.intensity = 0;
+player.inv['Crystal Carapace'] = (player.inv['Crystal Carapace']||0)+1;
+invEl.textContent = '🎒 ' + Object.keys(player.inv).length;
+showMsg('💀 Scolopendra defeated! Drops Crystal Carapace.', 6000);
+}
+if (b === camelKingBoss) {
+camelKingBoss = null;
+camelKingDefeated = true;
+player.inv['Camel Spider King Trophy'] = (player.inv['Camel Spider King Trophy']||0)+1;
+player.inv['King Fang'] = (player.inv['King Fang']||0)+1;
+player.inv['King Crown'] = (player.inv['King Crown']||0)+1;
+player.inv['Sand Plate'] = (player.inv['Sand Plate']||0)+1;
+invEl.textContent = '🎒 ' + Object.keys(player.inv).length;
+showMsg('💀 The Camel Spider King falls! Massive loot!', 6000);
+}
+if (b === finalBoss) {
+finalBoss = null;
+gameWon = true;
+stopTheme();
+player.kills++;
+bossKills++;
+killsEl.textContent = player.kills;
+bossEl.textContent = '⚔️ ' + bossKills;
+player.gold += 500;
+goldEl.textContent = '💰 ' + player.gold;
+sfxLevel();
+themeVictory();
+player.inv["King's Scepter"] = 1;
+invEl.textContent = '🎒 ' + Object.keys(player.inv).length;
+if (controls) { try { controls.unlock(); } catch(e) {} }
+startCutscene([
+{ char:'⚔️', speaker:'', text:'The True Lord of Mantis Kind falls to the ground.', bg:'radial-gradient(circle, #4a0a5a, #000)' },
+{ char:'👑', speaker:'THE TRUE LORD OF MANTIS KIND', text:'...Brother... forgive me... I only wanted... our kind to rise...', bg:'radial-gradient(circle, #4a0a5a, #000)' },
+{ char:'🦗', speaker:'YOU', text:'It is over. The realm is at peace.', bg:'radial-gradient(circle, #2a3a2a, #000)' },
+{ char:'🎉', speaker:'', text:'The dimension collapses around you. You awake in the capital.', bg:'radial-gradient(circle, #87ceeb, #c5e1a5)' },
+{ char:'👑', speaker:'', text:'You claim the King\'s Scepter. It hums with the weight of every mantis who ever lived.', bg:'radial-gradient(circle, #ffd700, #ff8c00)', flash:true },
+{ char:'🏆', speaker:'VICTORY', text:'You are crowned the new King of All Mantises.', bg:'radial-gradient(circle, #ffd700, #ff8c00)' },
+{ char:'🌟', speaker:'THE END', text:'Thank you for playing Mantis World. — The realm is safe.', bg:'radial-gradient(circle, #87ceeb, #c5e1a5)' }
+], function() {
+inDimension = false;
+player.mesh.position.set(0, 0.9, 80);
+currentBiomeTheme = '';
+updateTheme();
+showMsg('🏆 VICTORY! 🏆  You are the new King!', 99999);
+});
+}
+if (b === currentBoss) { currentBoss = null; bossHpEl.style.display = 'none'; }
+}
+}
+}
+}
+}
+
+function interact() {
+const pp = player.mesh.position;
+if (Math.hypot(pp.x - CFG.BOAT_X, pp.z - CFG.BOAT_Z) < 15) {
+if (!onIsland) sailToIsland();
+else sailHome();
+return;
+}
+if (nearLake && !ridingCart && !onIsland) {
+const d = Math.hypot(pp.x - CFG.LAKE_X, pp.z - CFG.LAKE_Z);
+if (d < CFG.LAKE_R + 15) {
+sfxCast();
+showMsg('🎣 You cast your line...', 1500);
+setTimeout(startFishing, 800);
+return;
+}
+}
+for (const n of npcs) {
+if (Math.hypot(n.mesh.position.x - pp.x, n.mesh.position.z - pp.z) < CFG.INTERACT) {
+const lines = ['Welcome, mantis!','Buy a Beetle Cart for 50 gold!','Chests hold armor and weapons that boost your stats.','There is a lake to the south — you can fish there!','I heard a tiny boat leads to a mysterious island...'];
+showMsg(n.name + ': "' + lines[Math.floor(Math.random()*lines.length)] + '"', 3000);
+return;
+}
+}
+for (const v of vehicles) {
+const d = Math.hypot(v.mesh.position.x - pp.x, v.mesh.position.z - pp.z);
+if (d < CFG.INTERACT && !onIsland) {
+if (v.forSale) {
+if (player.gold >= v.price) {
+player.gold -= v.price;
+goldEl.textContent = '💰 ' + player.gold;
+player.inv['Beetle Cart'] = (player.inv['Beetle Cart']||0)+1;
+invEl.textContent = '🎒 ' + Object.keys(player.inv).length;
+sfxLoot();
+showMsg('Bought Beetle Cart!', 2500);
+v.forSale = false;
+} else showMsg('Need 50 gold!', 2000);
+} else mountCart(v);
+return;
+}
+}
+for (const c of chests) {
+if (c.type === 'chest' && Math.hypot(c.mesh.position.x - pp.x, c.mesh.position.z - pp.z) < CFG.INTERACT) {
+if (c.loot && c.loot.length) {
+if (Math.random() < 0.5) c.loot.push(rollLoot());
+let gotTool = false;
+c.loot.forEach(item => {
+player.inv[item] = (player.inv[item]||0)+1;
+if (item === 'House Crafter Tool') gotTool = true;
+});
+invEl.textContent = '🎒 ' + Object.keys(player.inv).length;
+player.gold += 20;
+goldEl.textContent = '💰 ' + player.gold;
+sfxLoot();
+if (gotTool) { player.tool = true; showMsg('Got House Crafter Tool! Press H to build', 4000); }
+else showMsg('Looted: ' + c.loot.join(', '), 3000);
+c.loot = [];
+} else showMsg('Empty chest', 1000);
+return;
+}
+if (c.type === 'bed' && c.insideHut && Math.hypot(c.mesh.position.x - pp.x, c.mesh.position.z - pp.z) < CFG.INTERACT) {
+player.hp = player.maxHp;
+hpEl.style.width = '100%';
+sfxLevel();
+showMsg('Slept in hut! Fully healed.', 1500);
+return;
+}
+}
+}
+
+function useNearby() {
+const pp = player.mesh.position;
+for (const f of food) {
+if (f.insideHut && Math.hypot(f.mesh.position.x - pp.x, f.mesh.position.z - pp.z) < CFG.INTERACT) {
+player.hp = Math.min(player.maxHp, player.hp + 30);
+hpEl.style.width = (player.hp/player.maxHp*100) + '%';
+sfxLoot();
+showMsg('Ate food from hut! +30 HP', 1500);
+return;
+}
+}
+for (const f of food) {
+if (f.insideHut) continue;
+if (Math.hypot(f.mesh.position.x - pp.x, f.mesh.position.z - pp.z) < CFG.INTERACT) {
+player.hp = Math.min(player.maxHp, player.hp + 30);
+hpEl.style.width = (player.hp/player.maxHp*100) + '%';
+sfxLoot();
+showMsg('Ate food! +30 HP', 1500);
+return;
+}
+}
+}
+
+// ============ ENEMIES ============
+function updateEnemies(dt) {
+if (inDimension || onIsland) return;
+const pp = player.mesh.position;
+for (let i = enemies.length-1; i >= 0; i--) {
+const e = enemies[i];
+const ep = e.mesh.position;
+const dx = pp.x - ep.x;
+const dz = pp.z - ep.z;
+const dTP = Math.hypot(dx, dz);
+let mx = 0, mz = 0;
+if (dTP < 35) {
+const a = Math.atan2(dx, dz);
+const s = e.speed * dt * 60;
+mx = Math.sin(a)*s;
+mz = Math.cos(a)*s;
+} else {
+e.timer--;
+if (e.timer <= 0) { e.wander = Math.random()*Math.PI*2; e.timer = 60+Math.random()*120; }
+const s = e.speed * dt * 60 * 0.6;
+mx = Math.sin(e.wander)*s;
+mz = Math.cos(e.wander)*s;
+}
+ep.x += mx; ep.z += mz;
+if (Math.hypot(mx, mz) > 0.001) {
+const da = Math.atan2(mx, mz);
+let ad = da - e.mesh.rotation.y;
+while (ad > Math.PI) ad -= Math.PI*2;
+while (ad < -Math.PI) ad += Math.PI*2;
+e.mesh.rotation.y += ad * 0.12;
+}
+if (dTP < 3.5) {
+if (e.cd <= 0) {
+player.hp -= CFG.ENEMY_DMG;
+hpEl.style.width = Math.max(0, player.hp/player.maxHp*100) + '%';
+e.cd = 50;
+sfxHit();
+if (player.hp <= 0) { player.alive = false; gameActive = false; stopTheme(); showMsg('You died! Click Restart.', 10000); return; }
+}
+} else if (e.cd > 0) e.cd--;
+ep.y = getGroundHeight(ep.x, ep.z) + 0.9;
+}
+// no auto-respawn — we want to keep total count stable
+}
+
+// ============ MINIMAP ============
+function drawMinimap() {
+if (!gameActive || !player.mesh) return;
+const w = minimap.width;
+const h = minimap.height;
+const cx = w / 2;
+const cy = h / 2;
+minimapCtx.clearRect(0, 0, w, h);
+
+// Outer ring
+minimapCtx.fillStyle = 'rgba(10,20,10,0.85)';
+minimapCtx.beginPath();
+minimapCtx.arc(cx, cy, 85, 0, Math.PI * 2);
+minimapCtx.fill();
+minimapCtx.strokeStyle = '#8bc34a';
+minimapCtx.lineWidth = 3;
+minimapCtx.stroke();
+
+// Inner faint grid
+minimapCtx.strokeStyle = 'rgba(139,195,74,0.2)';
+minimapCtx.lineWidth = 1;
+for (let r = 20; r < 85; r += 20) {
+minimapCtx.beginPath();
+minimapCtx.arc(cx, cy, r, 0, Math.PI * 2);
+minimapCtx.stroke();
+}
+
+// World scale: WORLD_RADIUS / minimap_radius
+const WORLD_RADIUS = CFG.MOUNTAIN_INNER + 500;
+const MAP_RADIUS = 80;
+const scale = MAP_RADIUS / WORLD_RADIUS;
+
+const pp = player.mesh.position;
+
+function worldToMap(x, z) {
+return {
+mx: cx + x * scale,
+my: cy + z * scale
+};
+}
+
+// Draw biome rings (faint)
+BIOMES.forEach((b, i) => {
+if (i === 0) return;
+const rr = b.rOut * scale;
+minimapCtx.strokeStyle = 'rgba(139,195,74,0.15)';
+minimapCtx.lineWidth = 2;
+minimapCtx.beginPath();
+minimapCtx.arc(cx, cy, rr, 0, Math.PI * 2);
+minimapCtx.stroke();
+});
+
+// Draw points of interest
+function plotPoint(x, z, color, size, label) {
+const p = worldToMap(x, z);
+const dist = Math.hypot(p.mx - cx, p.my - cy);
+if (dist > 85) return; // outside minimap
+minimapCtx.fillStyle = color;
+minimapCtx.beginPath();
+minimapCtx.arc(p.mx, p.my, size, 0, Math.PI * 2);
+minimapCtx.fill();
+}
+
+// Spider lair
+plotPoint(spiderArenaOrigin.x, spiderArenaOrigin.z, spiderBossDefeated ? '#666' : '#ff4444', 4);
+// Centipede lair
+plotPoint(centipedeArenaOrigin.x, centipedeArenaOrigin.z, centipedeBossDefeated ? '#666' : '#ffaa00', 4);
+// Lake
+plotPoint(CFG.LAKE_X, CFG.LAKE_Z, '#4aa3d4', 5);
+// Boat
+plotPoint(CFG.BOAT_X, CFG.BOAT_Z, '#ffffff', 4);
+// Island
+plotPoint(islandOrigin.x, islandOrigin.z, camelKingDefeated ? '#666' : '#d4a760', 6);
+// Capital
+plotPoint(0, 0, '#ffd700', 5);
+
+// Villages
+const villagePositions = [[1100,500],[1800,1200],[2600,2000],[3300,2700],[3800,3500]];
+villagePositions.forEach(v => plotPoint(v[0], v[1], '#8bc34a', 3));
+
+// Enemies (small red dots)
+for (const e of enemies) {
+const p = worldToMap(e.mesh.position.x, e.mesh.position.z);
+const dist = Math.hypot(p.mx - cx, p.my - cy);
+if (dist > 82) continue;
+minimapCtx.fillStyle = '#ff2222';
+minimapCtx.beginPath();
+minimapCtx.arc(p.mx, p.my, 1.5, 0, Math.PI * 2);
+minimapCtx.fill();
+}
+
+// Camel spiders on island
+for (const s of camelSpiders) {
+plotPoint(s.mesh.position.x, s.mesh.position.z, '#ff6600', 1.8);
+}
+
+// Player dot (center)
+minimapCtx.fillStyle = '#00ff88';
+minimapCtx.beginPath();
+minimapCtx.arc(cx, cy, 5, 0, Math.PI * 2);
+minimapCtx.fill();
+minimapCtx.strokeStyle = '#000';
+minimapCtx.lineWidth = 2;
+minimapCtx.stroke();
+
+// Player facing direction (arrow)
+const fwdX = -Math.sin(camYaw);
+const fwdZ = -Math.cos(camYaw);
+minimapCtx.strokeStyle = '#00ff88';
+minimapCtx.lineWidth = 3;
+minimapCtx.beginPath();
+minimapCtx.moveTo(cx, cy);
+minimapCtx.lineTo(cx + fwdX * 14, cy + fwdZ * 14);
+minimapCtx.stroke();
+
+// Compass letters
+minimapCtx.fillStyle = '#aaffaa';
+minimapCtx.font = 'bold 11px monospace';
+minimapCtx.textAlign = 'center';
+minimapCtx.fillText('N', cx, 12);
+minimapCtx.fillText('S', cx, h - 4);
+minimapCtx.fillText('W', 8, cy + 4);
+minimapCtx.fillText('E', w - 8, cy + 4);
+}
+
+// ============ ANIMATE ============
+const clock = new THREE.Clock();
+function animate() {
+requestAnimationFrame(animate);
+const dt = Math.min(clock.getDelta(), 0.1);
+if (gameActive && !gameWon) {
+updatePlayer(dt);
+updateEnemies(dt);
+updateSpiderBoss(dt);
+updateCentipedeBoss(dt);
+updateCamelKing(dt);
+updateCamelSpiders(dt);
+updateFinalBoss(dt);
+}
+if (renderer && scene && camera) renderer.render(scene, camera);
+drawMinimap();
+}
+
+document.addEventListener('blur', () => {
+keys.w = keys.a = keys.s = keys.d = keys.space = keys.e = keys.f = keys.i = keys.h = keys.x = 0;
+});
+window.addEventListener('resize', () => {
+if (camera) { camera.aspect = innerWidth/innerHeight; camera.updateProjectionMatrix(); }
+if (renderer) renderer.setSize(innerWidth, innerHeight);
+});
+window.addEventListener('contextmenu', e => e.preventDefault());
+
+loadEl.style.display = 'none';
+console.log('Mantis World ready — minimap active');
+
+</script>
+</body>
+</html>
